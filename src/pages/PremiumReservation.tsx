@@ -6,7 +6,9 @@ export default function PremiumReservation() {
   const navigate = useNavigate()
   const [step, setStep] = useState(1);
   const [guests, setGuests] = useState(2)
+  const [selectedTable, setSelectedTable] = useState<number | null>(null)
 
+  const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const timeSlots = [
     { time: '17:00', status: 'available' },
     { time: '17:30', status: 'booked' },
@@ -42,7 +44,13 @@ export default function PremiumReservation() {
     if (step < 5) {
       setStep(step + 1)
     } else if (step === 5) {
-      navigate('/booking-confirmed')
+      navigate('/premium-booking-confirmed', { 
+        state: { 
+          selectedTime, 
+          guests, 
+          tableName: Object.values(tables).flat().find(t => t.id === selectedTable)?.name 
+        } 
+      })
     }
   }
 
@@ -165,20 +173,32 @@ export default function PremiumReservation() {
                   }}>
                     {timeSlots.map((slot, index) => (
                       <div key={index} style={{ position: 'relative' }}>
-                        <button style={{
-                          width: '100%',
-                          padding: '12px 0',
-                          backgroundColor: 'transparent',
-                          border: slot.status === 'booked' ? '1px solid #d73a49' : '1px solid rgba(255, 255, 255, 0.1)',
-                          borderRadius: '8px',
-                          color: slot.status === 'booked' ? '#d73a49' : '#ffffff',
-                          fontSize: '1rem',
-                          cursor: slot.status === 'booked' ? 'not-allowed' : 'pointer',
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          gap: '8px'
-                        }}>
+                        <button 
+                          onClick={() => slot.status !== 'booked' && setSelectedTime(slot.time)}
+                          style={{
+                            width: '100%',
+                            padding: '12px 0',
+                            backgroundColor: selectedTime === slot.time ? 'rgba(201, 156, 99, 0.1)' : 'transparent',
+                            border: slot.status === 'booked' 
+                              ? '1px solid #d73a49' 
+                              : selectedTime === slot.time 
+                                ? '1px solid #C99C63' 
+                                : '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '8px',
+                            color: slot.status === 'booked' 
+                              ? '#d73a49' 
+                              : selectedTime === slot.time 
+                                ? '#C99C63' 
+                                : '#ffffff',
+                            fontSize: '1rem',
+                            cursor: slot.status === 'booked' ? 'not-allowed' : 'pointer',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: '8px',
+                            transition: 'all 0.2s ease'
+                          }}
+                        >
                           {slot.status === 'booked' && <Info size={16} />}
                           {slot.time}
                         </button>
@@ -335,18 +355,30 @@ export default function PremiumReservation() {
                       const badgeStyle = getBadgeStyle(table.type)
                       
                       return (
-                        <div key={table.id} style={{
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
-                          borderRadius: '12px',
-                          padding: '24px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '20px',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.2s',
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                        <div 
+                          key={table.id} 
+                          onClick={() => setSelectedTable(table.id)}
+                          style={{
+                            border: selectedTable === table.id ? '1px solid #C99C63' : '1px solid rgba(255, 255, 255, 0.1)',
+                            borderRadius: '12px',
+                            padding: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '20px',
+                            cursor: 'pointer',
+                            backgroundColor: selectedTable === table.id ? 'rgba(201, 156, 99, 0.05)' : 'transparent',
+                            transition: 'all 0.2s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (selectedTable !== table.id) {
+                              e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.02)'
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (selectedTable !== table.id) {
+                              e.currentTarget.style.backgroundColor = 'transparent'
+                            }
+                          }}
                         >
                           {/* Table Icon */}
                           <div style={{
@@ -360,9 +392,9 @@ export default function PremiumReservation() {
                             flexShrink: 0
                           }}>
                             <img 
-                              src="/Images/Group 1597888803.svg" 
+                              src="/table.svg" 
                               alt="Table" 
-                              style={{ width: '32px', height: '32px', opacity: 0.7 }} 
+                              style={{ width: '32px', height: '32px', filter: 'brightness(0) invert(1)' }} 
                             />
                           </div>
 
@@ -540,35 +572,42 @@ export default function PremiumReservation() {
                       alignItems: 'center',
                       flexShrink: 0
                     }}>
-                      <img src="/Images/Group 1597888803.svg" alt="Table" style={{ width: '24px', height: '24px', opacity: 0.7 }} />
+                      <img src="/table.svg" alt="Table" style={{ width: '24px', height: '24px', filter: 'brightness(0) invert(1)' }} />
                     </div>
                     <div>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 8px 0' }}>Table</h3>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-                        <span style={{ fontSize: '0.875rem' }}>Table 2</span>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          backgroundColor: 'rgba(45, 122, 138, 0.15)',
-                          color: '#38bdf8',
-                          padding: '4px 10px',
-                          borderRadius: '20px',
-                          fontSize: '0.75rem',
-                          fontWeight: 500
-                        }}>
-                          <Lock size={12} />
-                          <span>VIP :$20</span>
-                        </div>
+                        <span style={{ fontSize: '0.875rem' }}>
+                          {Object.values(tables).flat().find(t => t.id === selectedTable)?.name || 'Not selected'}
+                        </span>
+                        {Object.values(tables).flat().find(t => t.id === selectedTable) && (
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            backgroundColor: 'rgba(45, 122, 138, 0.15)',
+                            color: '#38bdf8',
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            fontSize: '0.75rem',
+                            fontWeight: 500
+                          }}>
+                            <Lock size={12} />
+                            <span>
+                              {Object.values(tables).flat().find(t => t.id === selectedTable)?.type} :
+                              ${Object.values(tables).flat().find(t => t.id === selectedTable)?.price}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '24px', color: '#cfcfcf', fontSize: '0.875rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Users size={16} />
-                          <span>Capacity: 6 seats</span>
+                          <span>Capacity: {Object.values(tables).flat().find(t => t.id === selectedTable)?.capacity || 0} seats</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <MapPin size={16} />
-                          <span>Center area</span>
+                          <span>{Object.values(tables).flat().find(t => t.id === selectedTable)?.location || 'N/A'}</span>
                         </div>
                       </div>
                     </div>
@@ -630,10 +669,10 @@ export default function PremiumReservation() {
                     <div>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 8px 0' }}>Date & Time</h3>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem' }}>
-                        <span>Thu, Mar 5,2026</span>
+                        <span>Thu, Mar 5, 2026</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Clock size={16} />
-                          <span>17:30</span>
+                          <span>{selectedTime || 'Not selected'}</span>
                         </div>
                       </div>
                     </div>
@@ -771,15 +810,17 @@ export default function PremiumReservation() {
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontWeight: 500 }}>Time</span>
-                      <span style={{ color: '#cfcfcf', fontSize: '0.875rem' }}>17:30</span>
+                      <span style={{ color: '#cfcfcf', fontSize: '0.875rem' }}>{selectedTime || 'Not selected'}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontWeight: 500 }}>Guest</span>
-                      <span style={{ color: '#cfcfcf', fontSize: '0.875rem' }}>6</span>
+                      <span style={{ color: '#cfcfcf', fontSize: '0.875rem' }}>{guests}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 500 }}>Tabel Type</span>
-                      <span style={{ color: '#cfcfcf', fontSize: '0.875rem' }}>Table 8 (Main hall)</span>
+                      <span style={{ fontWeight: 500 }}>Table Type</span>
+                      <span style={{ color: '#cfcfcf', fontSize: '0.875rem' }}>
+                        {Object.values(tables).flat().find(t => t.id === selectedTable)?.name || 'Not selected'} ({Object.values(tables).flat().find(t => t.id === selectedTable)?.location || 'N/A'})
+                      </span>
                     </div>
 
                     <div style={{ height: '1px', backgroundColor: 'rgba(255,255,255,0.1)', margin: '8px 0' }}></div>

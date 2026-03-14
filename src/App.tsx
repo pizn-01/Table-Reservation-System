@@ -12,6 +12,7 @@ import StaffTableManagement from './pages/staff/StaffTableManagement'
 import LoggedInTabRes from './pages/LoggedInTabRes'
 import Welcome from './pages/Welcome'
 import PremiumReservation from './pages/PremiumReservation'
+import PremiumBookingConfirmed from './pages/reservation/PremiumBookingConfirmed'
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
       <Route path="/logged-in-tab-res" element={<LoggedInTabRes />} />
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/premium-reserve" element={<PremiumReservation />} />
+      <Route path="/premium-booking-confirmed" element={<PremiumBookingConfirmed />} />
     </Routes>
   )
 }
