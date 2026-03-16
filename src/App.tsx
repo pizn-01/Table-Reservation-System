@@ -15,6 +15,8 @@ import PremiumReservation from './pages/PremiumReservation'
 import PremiumBookingConfirmed from './pages/reservation/PremiumBookingConfirmed'
 import UserReservationWizard from './pages/user-reservation/UserReservationWizard'
 import UserBookingConfirmed from './pages/user-reservation/UserBookingConfirmed'
+import BookATableWizard from './pages/public-reservation/BookATableWizard'
+import PublicBookingConfirmed from './pages/public-reservation/PublicBookingConfirmed'
 
 function App() {
   return (
@@ -35,6 +37,8 @@ function App() {
       <Route path="/premium-booking-confirmed" element={<PremiumBookingConfirmed />} />
       <Route path="/user-reserve" element={<UserReservationWizard />} />
       <Route path="/user-booking-confirmed" element={<UserBookingConfirmed />} />
+      <Route path="/book-a-table" element={<BookATableWizard />} />
+      <Route path="/public-booking-confirmed" element={<PublicBookingConfirmed />} />
     </Routes>
   )
 }

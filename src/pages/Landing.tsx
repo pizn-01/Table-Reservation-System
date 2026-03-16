@@ -197,7 +197,7 @@ export default function Landing() {
                 </div>
 
                 <button
-                  onClick={() => navigate('/reserve')}
+                  onClick={() => navigate('/book-a-table')}
                   className="btn-gold"
                   style={{
                     width: '100%',
