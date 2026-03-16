@@ -47,7 +47,7 @@ export default function UserStepConfirmReview({ data, onEdit }: UserStepConfirmR
         Please review your booking details
       </p>
 
-      <div style={{
+      <div className="res-review-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
         gap: '24px'
@@ -126,7 +126,7 @@ export default function UserStepConfirmReview({ data, onEdit }: UserStepConfirmR
             </div>
             <div>
               <h3 style={{ fontWeight: 600, color: '#ffffff', fontSize: '0.875rem', margin: 0 }}>Contact Information</h3>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px', fontSize: '0.75rem', color: '#8b949e' }}>
+              <div className="res-review-contact" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px', fontSize: '0.75rem', color: '#8b949e' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                   <Mail size={11} />
                   {data.email || 'johndoe@example.com'}

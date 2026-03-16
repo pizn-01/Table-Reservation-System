@@ -28,7 +28,7 @@ export default function UserStepContactInfo({ data, updateData }: UserStepContac
         Please provide your details for the reservation
       </p>
 
-      <div style={{
+      <div className="res-contact-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
         gap: '24px'

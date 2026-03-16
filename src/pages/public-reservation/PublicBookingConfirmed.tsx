@@ -56,7 +56,7 @@ export default function PublicBookingConfirmed() {
         marginBottom: '40px',
         animation: 'slideUp 0.5s ease-out'
       }}>
-        <div style={{
+      <div className="res-confirm-box" style={{
           boxSizing: 'border-box',
           backgroundColor: '#101A1C',
           borderRadius: '16px',
@@ -94,7 +94,7 @@ export default function PublicBookingConfirmed() {
           </div>
 
           {/* Inner Details Box */}
-          <div style={{
+          <div className="res-confirm-details" style={{
             width: '100%',
             maxWidth: '700px',
             height: '340px',

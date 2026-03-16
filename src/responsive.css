@@ -160,3 +160,75 @@
     font-size: 1.75rem !important;
   }
 }
+
+/* ========================================= */
+/* Section 3: Public Booking Flow            */
+/* ========================================= */
+
+@media (max-width: 768px) {
+  /* Wizard Container & Step Content */
+  .res-wizard-container {
+    padding: 0 16px !important;
+  }
+  .res-wizard-step-content {
+    padding: 24px 16px !important;
+  }
+
+  /* Step 1: Date & Time */
+  .res-time-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .res-guest-presets {
+    gap: 8px !important;
+  }
+  .res-guest-presets button {
+    flex: 1 !important;
+    min-width: 60px !important;
+  }
+
+  /* Step 2: Table Select */
+  .res-table-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Step 3: Contact Info */
+  .res-contact-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Step 4: Confirm Review */
+  .res-review-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .res-review-contact {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  /* Booking Confirmed */
+  .res-confirm-box {
+    padding: 40px 24px 24px 24px !important;
+  }
+  .res-confirm-details {
+    padding: 16px !important;
+    height: auto !important;
+    gap: 12px !important;
+  }
+  .res-confirm-details > div {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    height: auto !important;
+    gap: 4px !important;
+  }
+  .res-confirm-details span:last-child {
+    text-align: left !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .res-time-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}

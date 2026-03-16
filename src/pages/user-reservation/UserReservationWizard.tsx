@@ -109,7 +109,7 @@ export default function UserReservationWizard() {
       </div>
 
       {/* Main Container */}
-      <div style={{ width: '100%', maxWidth: '896px', margin: '0 auto', display: 'flex', flexDirection: 'column', flex: 1, padding: '0 32px' }}>
+      <div className="res-wizard-container" style={{ width: '100%', maxWidth: '896px', margin: '0 auto', display: 'flex', flexDirection: 'column', flex: 1, padding: '0 32px' }}>
         {/* Progress Bar */}
         <div style={{ marginBottom: '0' }}>
           <DarkProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} percentage={percentage} />
@@ -117,7 +117,7 @@ export default function UserReservationWizard() {
 
         {/* Step Content */}
         <div style={{ flex: 1, paddingBottom: '16px', paddingTop: '8px' }}>
-          <div className="animate-fade-in" style={{ 
+          <div className="animate-fade-in res-wizard-step-content" style={{ 
             backgroundColor: '#101A1C', 
             border: '1px solid #30363d', 
             borderRadius: '16px', 

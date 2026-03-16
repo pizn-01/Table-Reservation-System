@@ -92,7 +92,7 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
         <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff', marginBottom: '12px' }}>
           Preferred Time
         </h3>
-        <div style={{
+        <div className="res-time-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(5, 1fr)',
           gap: '12px'
@@ -245,7 +245,7 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
             </button>
           </div>
 
-          <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
+          <div className="res-guest-presets" style={{ display: 'flex', gap: '16px', marginTop: '16px', flexWrap: 'wrap', justifyContent: 'center' }}>
             {presets.map((preset) => {
               const isSelected = data.guests === preset;
               return (
