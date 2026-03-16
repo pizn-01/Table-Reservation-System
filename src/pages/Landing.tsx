@@ -33,6 +33,7 @@ export default function Landing() {
 
         {/* Content */}
         <div
+          className="res-hero-content-row"
           style={{
             position: 'relative',
             zIndex: 10,
@@ -47,7 +48,7 @@ export default function Landing() {
         >
           {/* Left Content — aligned toward bottom */}
           <div
-            className="animate-fade-in"
+            className="animate-fade-in res-hero-left"
             style={{
               flex: 1,
               display: 'flex',
@@ -56,6 +57,7 @@ export default function Landing() {
           >
             <div>
               <h1
+                className="res-hero-title"
                 style={{
                   fontSize: '4.5rem',
                   fontWeight: 700,
@@ -84,9 +86,9 @@ export default function Landing() {
           </div>
 
           {/* Right Reservation Card — vertically centered */}
-          <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div className="res-hero-card-wrapper" style={{ display: 'flex', alignItems: 'center' }}>
             <div
-              className="animate-slide-up"
+              className="animate-slide-up res-hero-card"
               style={{
                 width: '430px',
                 height: '430px',

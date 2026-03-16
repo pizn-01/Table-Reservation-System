@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @source "./**/*.{tsx,ts,jsx,js}";
 @source "../index.html";
+@import "./responsive.css";
 
 /* ===== Design System: Table Reservation System ===== */
 

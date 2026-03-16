@@ -25,6 +25,7 @@ export default function Navbar({ variant = 'public', theme = 'dark', onToggleThe
 
   return (
     <nav
+      className="res-navbar"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -34,6 +35,7 @@ export default function Navbar({ variant = 'public', theme = 'dark', onToggleThe
     >
       <Link
         to="/"
+        className="res-nav-logo"
         style={{
           fontSize: '1.35rem',
           fontWeight: 700,
@@ -47,7 +49,7 @@ export default function Navbar({ variant = 'public', theme = 'dark', onToggleThe
         Logo
       </Link>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div className="res-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {variant === 'public' && (
           <Link
             to="/login"

@@ -1,0 +1,66 @@
+/* src/responsive.css */
+/* 
+  Strict Media Queries for Mobile Responsiveness.
+  These queries specifically target 'hook' classes added to the components
+  to safely override inline styles using !important on mobile devices,
+  preserving pixel-perfect desktop layouts.
+*/
+
+/* Mobile and Small Tablets */
+@media (max-width: 768px) {
+  /* ==== Navbar ==== */
+  .res-navbar {
+    padding: 16px 24px !important;
+  }
+
+  /* ==== Landing Hero ==== */
+  .res-hero-content-row {
+    flex-direction: column !important;
+    padding: 40px 24px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 40px !important;
+  }
+  
+  .res-hero-left {
+    align-items: center !important;
+    text-align: center !important;
+  }
+  
+  .res-hero-title {
+    font-size: 3.5rem !important;
+  }
+  
+  .res-hero-card-wrapper {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+  
+  .res-hero-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important; /* Override fixed height of 430px */
+    padding: 24px !important;
+  }
+}
+
+/* Very Small Mobile */
+@media (max-width: 480px) {
+  /* ==== Navbar ==== */
+  .res-navbar {
+    padding: 16px 16px !important;
+  }
+  
+  /* ==== Landing Hero ==== */
+  .res-hero-content-row {
+    padding: 32px 16px !important;
+  }
+
+  .res-hero-title {
+    font-size: 2.75rem !important;
+  }
+
+  .res-hero-card {
+    padding: 20px !important;
+  }
+}
