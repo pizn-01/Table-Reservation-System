@@ -609,7 +609,7 @@ export default function PremiumReservation() {
                           </div>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '24px', color: '#cfcfcf', fontSize: '0.875rem' }}>
+                      <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '24px', color: '#cfcfcf', fontSize: '0.875rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Users size={16} />
                           <span>Capacity: {Object.values(tables).flat().find(t => t.id === selectedTable)?.capacity || 0} seats</span>
@@ -677,7 +677,7 @@ export default function PremiumReservation() {
                     </div>
                     <div>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 8px 0' }}>Date & Time</h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem' }}>
+                      <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem' }}>
                         <span>Thu, Mar 5, 2026</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Clock size={16} />
@@ -713,7 +713,7 @@ export default function PremiumReservation() {
                     </div>
                     <div style={{ width: '100%' }}>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 12px 0' }}>Contact Information</h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem', marginBottom: '12px', whiteSpace: 'nowrap' }}>
+                      <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem', marginBottom: '12px', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Mail size={16} />
                           <span>johndoe@example.com</span>

@@ -262,6 +262,11 @@
     font-size: 0.75rem !important;
     word-break: break-word !important;
   }
+  .res-prem-details-row {
+    flex-wrap: wrap !important;
+    white-space: normal !important;
+    gap: 8px !important;
+  }
 }
 
 @media (max-width: 480px) {
