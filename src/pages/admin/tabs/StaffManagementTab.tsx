@@ -21,8 +21,8 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
   return (
     <div>
       {/* Top Control Bar */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <div style={{ position: 'relative', width: '400px' }}>
+      <div className="res-admin-tab-header res-staff-controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', gap: '16px' }}>
+        <div style={{ position: 'relative', width: '400px', maxWidth: '100%' }}>
           <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: isDark ? '#8b949e' : '#6b7280' }} />
           <input
             type="text"

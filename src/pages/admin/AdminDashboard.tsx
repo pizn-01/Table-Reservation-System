@@ -32,9 +32,9 @@ export default function AdminDashboard() {
     }}>
       <Navbar variant="admin" theme={theme} onToggleTheme={toggleTheme} />
 
-      <div style={{ padding: '32px 48px' }}>
+      <div className="res-admin-container" style={{ padding: '32px 48px' }}>
         {/* Stats Cards */}
-        <div style={{
+        <div className="res-admin-stats-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(4, 1fr)',
           gap: '24px', // Spacious gap
@@ -70,7 +70,7 @@ export default function AdminDashboard() {
         <div style={{
           width: '100%',
         }}>
-          <div style={{
+          <div className="res-admin-tabs" style={{
             display: 'flex',
             gap: '32px', // wide gap between tabs
             borderBottom: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,

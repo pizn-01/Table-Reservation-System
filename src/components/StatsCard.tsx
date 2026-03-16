@@ -12,6 +12,7 @@ export default function StatsCard({ label, value, icon, variant = 'dark' }: Stat
 
   return (
     <div
+      className="res-stats-card"
       style={{
         display: 'flex',
         alignItems: 'center',

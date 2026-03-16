@@ -232,3 +232,103 @@
     grid-template-columns: repeat(2, 1fr) !important;
   }
 }
+
+/* ========================================= */
+/* Section 4: Dashboards                     */
+/* ========================================= */
+
+@media (max-width: 1024px) {
+  /* Admin & Staff Grids */
+  .res-admin-stats-grid,
+  .res-staff-stats-row,
+  .res-staff-floor-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Customer Dashboard */
+  .res-cust-header,
+  .res-cust-content {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+  .res-cust-cta {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+  }
+  .res-cust-tabs {
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+  }
+  .res-cust-res-card-inner {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  .res-cust-res-meta {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+
+  /* Admin Dashboard */
+  .res-admin-container {
+    padding: 16px !important;
+  }
+  .res-admin-tabs {
+    gap: 16px !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+  }
+  .res-admin-tab-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .res-staff-controls {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  /* Staff Table Management */
+  .res-staff-container {
+    padding: 16px !important;
+  }
+  .res-staff-stats-row {
+    gap: 12px !important;
+    margin-bottom: 24px !important;
+  }
+  .res-staff-tabs {
+    padding: 16px !important;
+    gap: 16px !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+  }
+  .res-staff-day-header,
+  .res-staff-cal-nav {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 16px !important;
+    padding: 16px !important;
+  }
+  .res-staff-day-grid {
+    padding: 0 16px 16px 16px !important;
+    grid-template-columns: 1fr !important;
+  }
+  .res-staff-cal-days {
+    overflow-x: auto !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .res-admin-stats-grid,
+  .res-staff-stats-row,
+  .res-staff-floor-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .res-stats-card {
+    padding: 12px 16px !important;
+  }
+}

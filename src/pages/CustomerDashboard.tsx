@@ -42,13 +42,13 @@ export default function CustomerDashboard() {
   return (
     <div className="min-h-screen bg-dark-bg">
       {/* Header */}
-      <div className="bg-dark-card border-b border-dark-border px-8 py-8">
+      <div className="bg-dark-card border-b border-dark-border px-8 py-8 res-cust-header">
         <div className="max-w-5xl mx-auto">
           <h1 className="text-2xl font-bold text-white mb-1">Welcome back, John!</h1>
           <p className="text-dark-text-secondary text-sm">Manage your dining reservations</p>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 gap-4 mt-6 max-w-md">
+          <div className="grid grid-cols-2 gap-4 mt-6 max-w-md res-cust-stats-grid">
             <div className="bg-dark-bg-secondary border border-dark-border rounded-xl p-4">
               <p className="text-dark-text-secondary text-xs">Upcoming</p>
               <p className="text-2xl font-bold text-white mt-1">1</p>
@@ -61,9 +61,9 @@ export default function CustomerDashboard() {
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-8 py-8">
+      <div className="max-w-5xl mx-auto px-8 py-8 res-cust-content">
         {/* CTA Card */}
-        <div className="bg-green-subtle border border-green-primary/30 rounded-2xl p-6 mb-8 flex items-center justify-between">
+        <div className="bg-green-subtle border border-green-primary/30 rounded-2xl p-6 mb-8 flex items-center justify-between res-cust-cta">
           <div>
             <h2 className="text-lg font-semibold text-white">Ready For Your Next Visit?</h2>
             <p className="text-sm text-dark-text-secondary mt-1">Reserve your favorite table in just a few clicks</p>
@@ -77,7 +77,7 @@ export default function CustomerDashboard() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-6 border-b border-dark-border mb-6">
+        <div className="flex gap-6 border-b border-dark-border mb-6 res-cust-tabs">
           <button
             onClick={() => setActiveTab('upcoming')}
             className={`pb-3 text-sm font-medium transition-colors cursor-pointer ${
@@ -107,13 +107,13 @@ export default function CustomerDashboard() {
               key={res.id}
               className="bg-dark-card border border-dark-border rounded-xl p-6"
             >
-              <div className="flex items-start justify-between">
+              <div className="flex items-start justify-between res-cust-res-card-inner">
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-white">
                     <Calendar size={14} className="text-gold" />
                     {res.date}
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-dark-text-secondary">
+                  <div className="flex items-center gap-4 text-sm text-dark-text-secondary res-cust-res-meta">
                     <span className="flex items-center gap-1.5">
                       <Clock size={13} />
                       {res.time}
@@ -128,7 +128,7 @@ export default function CustomerDashboard() {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 res-cust-res-actions">
                   <span className={`badge ${
                     res.status === 'Confirmed' ? 'badge-confirmed' : 'badge-available'
                   }`}>
