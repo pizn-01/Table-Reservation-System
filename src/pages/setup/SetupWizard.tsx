@@ -21,6 +21,7 @@ export default function SetupWizard() {
   // Step 1: Restaurant Details
   const [details, setDetails] = useState({
     address: '',
+    description: 'Experience authentic cuisine in an elegant atmosphere',
     openingTime: '17:00',
     closingTime: '22:00',
   })
@@ -56,6 +57,7 @@ export default function SetupWizard() {
           // Save restaurant details
           await api.put(`/organizations/${orgId}`, {
             address: details.address,
+            description: details.description,
             openingTime: details.openingTime,
             closingTime: details.closingTime,
           })

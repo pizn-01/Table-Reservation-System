@@ -50,6 +50,7 @@ export class OrganizationService {
 
     // Map camelCase DTO to snake_case DB columns
     if (dto.name !== undefined) updateData.name = dto.name;
+    if (dto.description !== undefined) updateData.description = dto.description;
     if (dto.address !== undefined) updateData.address = dto.address;
     if (dto.phone !== undefined) updateData.phone = dto.phone;
     if (dto.email !== undefined) updateData.email = dto.email;
@@ -185,6 +186,7 @@ export class OrganizationService {
       id: row.id,
       name: row.name,
       slug: row.slug,
+      description: row.description,
       ownerId: row.owner_id,
       logoUrl: row.logo_url,
       country: row.country,

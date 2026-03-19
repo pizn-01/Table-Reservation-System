@@ -4,6 +4,7 @@ import { CreateReservationDto, UpdateReservationDto, ReservationFilterQuery } fr
 import { ReservationStatus } from '../types/enums';
 import { addMinutesToTime, timeRangesOverlap, getTodayDate } from '../utils/time';
 import { parsePagination, buildPaginationMeta } from '../utils/pagination';
+import { emailService } from './email.service';
 
 // Valid status transitions
 const VALID_TRANSITIONS: Record<string, string[]> = {
@@ -81,10 +82,10 @@ export class ReservationService {
    * Create a new reservation.
    */
   async create(restaurantId: string, dto: CreateReservationDto, createdBy?: string) {
-    // Get restaurant settings for default duration
+    // Get restaurant settings for default duration and name for email
     const { data: org } = await supabaseAdmin
       .from('organizations')
-      .select('default_reservation_duration_min, max_party_size')
+      .select('name, default_reservation_duration_min, max_party_size')
       .eq('id', restaurantId)
       .single();
 
@@ -169,7 +170,22 @@ export class ReservationService {
       );
     }
 
-    return this.formatReservation(createdRes);
+    const formattedRes = this.formatReservation(createdRes);
+
+    // Send confirmation email asynchronously (do not block the response)
+    if (dto.guestEmail && org?.name) {
+      emailService.sendReservationConfirmation({
+        to: dto.guestEmail,
+        guestName: dto.guestFirstName,
+        restaurantName: org.name,
+        date: dto.reservationDate,
+        time: dto.startTime,
+        partySize: dto.partySize,
+        confirmationId: createdRes.id.split('-')[0].toUpperCase(),
+      });
+    }
+
+    return formattedRes;
   }
 
   /**

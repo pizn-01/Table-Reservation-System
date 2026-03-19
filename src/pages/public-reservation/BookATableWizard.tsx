@@ -24,7 +24,7 @@ export interface ReservationData {
 }
 
 const initialData: ReservationData = {
-  date: '19/02/2026',
+  date: new Date().toISOString().split('T')[0],
   time: '',
   guests: 2,
   tableId: null,
@@ -64,10 +64,9 @@ export default function BookATableWizard() {
       setSubmitError('')
 
       try {
-        // Parse date from DD/MM/YYYY to YYYY-MM-DD
-        const dateParts = data.date.split('/')
-        const reservationDate = dateParts.length === 3
-          ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+        // Parse date — native picker gives YYYY-MM-DD, legacy gives DD/MM/YYYY
+        const reservationDate = data.date.includes('/') 
+          ? (() => { const p = data.date.split('/'); return `${p[2]}-${p[1]}-${p[0]}`; })()
           : data.date
 
         // Calculate end time (90 min default duration)

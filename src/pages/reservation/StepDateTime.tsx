@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Calendar, AlertCircle } from 'lucide-react'
 import TimeSlotPicker from '../../components/TimeSlotPicker'
 import GuestCounter from '../../components/GuestCounter'
@@ -28,8 +28,10 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
     if (!orgId || !data.date) return
     const fetchConflicts = async () => {
       try {
-        const dateParts = data.date.split('/')
-        const isoDate = dateParts.length === 3 ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : data.date
+        // Date is now ISO format from native picker (YYYY-MM-DD)
+        const isoDate = data.date.includes('/') 
+          ? (() => { const p = data.date.split('/'); return `${p[2]}-${p[1]}-${p[0]}`; })()
+          : data.date
         const res = await api.get<any[]>(`/organizations/${orgId}/reservations?date=${isoDate}`)
         const bookings = res.data || []
 
@@ -68,10 +70,8 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
         await Promise.all(
           TIME_SLOTS.map(async (slot) => {
             try {
-              const dateParts2 = data.date.split('/')
-              const isoDate2 = dateParts2.length === 3 ? `${dateParts2[2]}-${dateParts2[1]}-${dateParts2[0]}` : data.date
               const avail = await api.get<any[]>(
-                `/organizations/${orgId}/tables/availability?date=${isoDate2}&time=${slot}&partySize=${data.guests}`
+                `/organizations/${orgId}/tables/availability?date=${isoDate}&time=${slot}&partySize=${data.guests}`
               )
               if (avail.data && avail.data.length === 0) {
                 conflicted.push(slot)
@@ -90,6 +90,7 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
   }, [orgId, data.date, data.guests])
 
   const fullyBooked = conflictSlots.length === TIME_SLOTS.length
+  const dateRef = useRef<HTMLInputElement>(null)
 
   return (
     <div>
@@ -129,13 +130,14 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
         </label>
         <div style={{ position: 'relative' }}>
           <input
-            type="text"
+            ref={dateRef}
+            type="date"
             value={data.date}
             onChange={(e) => updateData({ date: e.target.value })}
-            style={{
-              padding: '12px 16px',
-              paddingRight: '40px',
-              width: '100%',
+            style={{ 
+              padding: '12px 16px', 
+              paddingRight: '40px', 
+              width: '100%', 
               boxSizing: 'border-box',
               backgroundColor: '#ffffff',
               border: '1px solid #d1d5db',
@@ -145,7 +147,11 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
               fontFamily: 'var(--font-sans)'
             }}
           />
-          <Calendar size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
+          <Calendar 
+            size={18} 
+            onClick={() => dateRef.current?.showPicker()}
+            style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', cursor: 'pointer' }} 
+          />
         </div>
       </div>
 

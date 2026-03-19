@@ -25,7 +25,7 @@ export interface ReservationData {
 }
 
 const initialData: ReservationData = {
-  date: '18/02/2026',
+  date: new Date().toISOString().split('T')[0],
   time: '',
   guests: 2,
   tableId: null,
@@ -63,8 +63,9 @@ export default function UserReservationWizard() {
       setIsSubmitting(true)
       setSubmitError('')
       try {
-        const dateParts = data.date.split('/')
-        const reservationDate = dateParts.length === 3 ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : data.date
+        const reservationDate = data.date.includes('/') 
+          ? (() => { const p = data.date.split('/'); return `${p[2]}-${p[1]}-${p[0]}`; })()
+          : data.date
         const [h, m] = data.time.split(':').map(Number)
         const end = new Date(2000, 0, 1, h, m + 90)
         const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`

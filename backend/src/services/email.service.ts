@@ -1,7 +1,8 @@
 /**
  * Pluggable email service with provider abstraction.
- * Currently uses a bypass (console logging) until an email provider is configured.
+ * Now using Resend for real email delivery in testing mode.
  */
+import { Resend } from 'resend';
 
 export interface EmailPayload {
   to: string;
@@ -29,14 +30,55 @@ class ConsoleEmailProvider implements EmailProvider {
   }
 }
 
+class ResendEmailProvider implements EmailProvider {
+  private resend: Resend;
+  
+  constructor() {
+    this.resend = new Resend(process.env.RESEND_API_KEY || 're_aRiob8Mg_DUUjTAXDhM3baNRAP7kLYjj4');
+  }
+
+  async send(payload: EmailPayload) {
+    try {
+      // In production with a custom domain, we would use a real 'from' address.
+      // In sandbox mode, Resend requires from: onboarding@resend.dev
+      const isProd = process.env.NODE_ENV === 'production' && process.env.HAS_CUSTOM_DOMAIN === 'true';
+      const fromEmail = isProd ? 'reservations@yourdomain.com' : 'Table Reserve <onboarding@resend.dev>';
+      
+      // In sandbox mode, we can only send to the exact email address used to sign up for Resend.
+      // We pull this from test_email env var or use a clear fallback string.
+      const toEmail = isProd ? payload.to : (process.env.RESEND_TEST_EMAIL || payload.to);
+
+      const response = await this.resend.emails.send({
+        from: payload.from || fromEmail,
+        to: Array.isArray(toEmail) ? toEmail : [toEmail],
+        subject: payload.subject,
+        html: payload.html,
+        text: payload.text,
+        replyTo: payload.replyTo,
+      });
+
+      if (response.error) {
+        console.error('Resend API Error:', response.error);
+        return { success: false };
+      }
+
+      console.log(`[Resend] Email sent successfully to ${toEmail}`);
+      return { success: true, messageId: response.data?.id };
+    } catch (err) {
+      console.error('Failed to send email via Resend:', err);
+      return { success: false };
+    }
+  }
+}
+
 // ─── Email Service ─────────────────────────────────────
 
 class EmailService {
   private provider: EmailProvider;
 
   constructor() {
-    // Default to console bypass until a provider is configured
-    this.provider = new ConsoleEmailProvider();
+    // Default to Resend provider
+    this.provider = new ResendEmailProvider();
   }
 
   /**

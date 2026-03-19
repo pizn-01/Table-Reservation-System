@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Calendar, Info, Minus, Plus, ChefHat, Users, MapPin, Lock, Pencil, Clock, User, Mail, Phone } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -14,11 +14,12 @@ export default function PremiumReservation() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [contactInfo, setContactInfo] = useState({ firstName: '', lastName: '', email: '', phone: '', specialRequest: '' })
-  const [dateVal, setDateVal] = useState('18/02/2026')
+  const [dateVal, setDateVal] = useState(new Date().toISOString().split('T')[0])
 
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [hoveredSlot, setHoveredSlot] = useState<string | null>(null)
   const [bookedSlots, setBookedSlots] = useState<string[]>([])
+  const dateRef = useRef<HTMLInputElement>(null)
 
   const SLOT_TIMES = ['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30']
 
@@ -27,8 +28,9 @@ export default function PremiumReservation() {
     if (!orgId || !dateVal) return
     const fetchAvailability = async () => {
       try {
-        const dateParts = dateVal.split('/')
-        const isoDate = dateParts.length === 3 ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : dateVal
+        const isoDate = dateVal.includes('/') 
+          ? (() => { const p = dateVal.split('/'); return `${p[2]}-${p[1]}-${p[0]}`; })()
+          : dateVal
         const conflicted: string[] = []
         await Promise.all(
           SLOT_TIMES.map(async (slot) => {
@@ -77,8 +79,8 @@ export default function PremiumReservation() {
       setIsSubmitting(true)
       setSubmitError('')
       try {
-        const dateParts = dateVal.split('/')
-        const reservationDate = dateParts.length === 3 ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : dateVal
+        const dateParts = dateVal.includes('/') ? dateVal.split('/') : null
+        const reservationDate = dateParts ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : dateVal
         const [h, m] = (selectedTime || '17:00').split(':').map(Number)
         const end = new Date(2000, 0, 1, h, m + 90)
         const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
@@ -204,8 +206,8 @@ export default function PremiumReservation() {
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Date</label>
                   <div style={{ position: 'relative' }}>
                     <input 
-                      type="text" 
-                      placeholder="18/02/2026"
+                      ref={dateRef}
+                      type="date" 
                       value={dateVal}
                       onChange={(e) => setDateVal(e.target.value)}
                       style={{
@@ -218,10 +220,15 @@ export default function PremiumReservation() {
                         color: '#ffffff',
                         fontSize: '1rem',
                         outline: 'none',
-                        boxSizing: 'border-box'
+                        boxSizing: 'border-box',
+                        colorScheme: 'dark'
                       }} 
                     />
-                    <Calendar size={20} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#8b949e' }} />
+                    <Calendar 
+                      size={20} 
+                      onClick={() => dateRef.current?.showPicker()}
+                      style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#8b949e', cursor: 'pointer' }} 
+                    />
                   </div>
                 </div>
 

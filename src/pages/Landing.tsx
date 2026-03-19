@@ -1,15 +1,38 @@
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock } from 'lucide-react'
 import Navbar from '../components/Navbar'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import api from '../lib/api'
 
 import heroBg from '../assets/mask-group.png'
 
 export default function Landing() {
   const navigate = useNavigate()
-  const [date, setDate] = useState('19/02/2026')
+  const today = new Date().toISOString().split('T')[0]
+  const [date, setDate] = useState(today)
   const [time, setTime] = useState('17:00')
   const [guests, setGuests] = useState('2')
+  const dateRef = useRef<HTMLInputElement>(null)
+  const timeRef = useRef<HTMLInputElement>(null)
+  
+  const [restaurantName, setRestaurantName] = useState('Welcome')
+  const [description, setDescription] = useState('Experience authentic italian cuisine\nin an elegant atmosphere')
+
+  useEffect(() => {
+    // We fetch the first org or public default slug (e.g. 'blackstone' matching the logo)
+    const fetchOrg = async () => {
+      try {
+        const res = await api.get<{ data: { name: string, description: string } }>('/public/blackstone/info')
+        if (res.data?.data) {
+          if (res.data.data.name) setRestaurantName(`Welcome to ${res.data.data.name}`)
+          if (res.data.data.description) setDescription(res.data.data.description)
+        }
+      } catch (err) {
+        // Fallback or ignore if slug not setup / table empty
+      }
+    }
+    fetchOrg()
+  }, [])
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -66,7 +89,7 @@ export default function Landing() {
                   fontFamily: 'var(--font-sans)',
                 }}
               >
-                Welcome
+                {restaurantName}
               </h1>
               <p
                 style={{
@@ -76,11 +99,10 @@ export default function Landing() {
                   maxWidth: '28rem',
                   lineHeight: 1.6,
                   fontFamily: 'var(--font-sans)',
+                  whiteSpace: 'pre-line' // respects \n in default string
                 }}
               >
-                Experience authentic italian cuisine
-                <br />
-                in an elegant atmosphere
+                {description}
               </p>
             </div>
           </div>
@@ -126,20 +148,23 @@ export default function Landing() {
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
-                      type="text"
+                      ref={dateRef}
+                      type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       className="input-dark"
-                      style={{ paddingRight: '40px' }}
+                      style={{ paddingRight: '40px', colorScheme: 'dark' }}
                     />
                     <Calendar
                       size={14}
+                      onClick={() => dateRef.current?.showPicker()}
                       style={{
                         position: 'absolute',
                         right: '12px',
                         top: '50%',
                         transform: 'translateY(-50%)',
                         color: '#8b949e',
+                        cursor: 'pointer',
                       }}
                     />
                   </div>
@@ -159,20 +184,23 @@ export default function Landing() {
                   </label>
                   <div style={{ position: 'relative' }}>
                     <input
-                      type="text"
+                      ref={timeRef}
+                      type="time"
                       value={time}
                       onChange={(e) => setTime(e.target.value)}
                       className="input-dark"
-                      style={{ paddingRight: '40px' }}
+                      style={{ paddingRight: '40px', colorScheme: 'dark' }}
                     />
                     <Clock
                       size={14}
+                      onClick={() => timeRef.current?.showPicker()}
                       style={{
                         position: 'absolute',
                         right: '12px',
                         top: '50%',
                         transform: 'translateY(-50%)',
                         color: '#8b949e',
+                        cursor: 'pointer',
                       }}
                     />
                   </div>

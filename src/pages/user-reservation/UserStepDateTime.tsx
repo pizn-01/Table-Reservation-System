@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Calendar, AlertCircle, Clock } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
@@ -20,6 +20,7 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
   const [showWaitingList, setShowWaitingList] = useState(false)
   const [conflictSlots, setConflictSlots] = useState<string[]>([])
   const [hoveredDisabled, setHoveredDisabled] = useState<string | null>(null)
+  const dateRef = useRef<HTMLInputElement>(null)
 
   const presets = [2, 4, 6, 8]
 
@@ -28,8 +29,9 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
     if (!orgId || !data.date) return
     const fetchConflicts = async () => {
       try {
-        const dateParts = data.date.split('/')
-        const isoDate = dateParts.length === 3 ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : data.date
+        const isoDate = data.date.includes('/') 
+          ? (() => { const p = data.date.split('/'); return `${p[2]}-${p[1]}-${p[0]}`; })()
+          : data.date
 
         const conflicted: string[] = []
         await Promise.all(
@@ -102,13 +104,14 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
         </label>
         <div style={{ position: 'relative' }}>
           <input
-            type="text"
+            ref={dateRef}
+            type="date"
             value={data.date}
             onChange={(e) => updateData({ date: e.target.value })}
-            style={{
-              padding: '12px 16px',
-              paddingRight: '40px',
-              width: '100%',
+            style={{ 
+              padding: '12px 16px', 
+              paddingRight: '40px', 
+              width: '100%', 
               boxSizing: 'border-box',
               backgroundColor: 'transparent',
               border: '1px solid #30363d',
@@ -116,10 +119,15 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
               color: '#ffffff',
               fontSize: '1rem',
               fontFamily: 'Inter, system-ui, sans-serif',
-              outline: 'none'
+              outline: 'none',
+              colorScheme: 'dark'
             }}
           />
-          <Calendar size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#8b949e' }} />
+          <Calendar 
+            size={18} 
+            onClick={() => dateRef.current?.showPicker()}
+            style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#8b949e', cursor: 'pointer' }} 
+          />
         </div>
       </div>
 

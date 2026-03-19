@@ -45,6 +45,7 @@ export interface PaginationQuery {
 
 export interface CreateOrganizationDto {
   name: string;
+  description?: string;
   address?: string;
   country?: string;
   timezone?: string;
@@ -54,6 +55,7 @@ export interface CreateOrganizationDto {
 
 export interface UpdateOrganizationDto {
   name?: string;
+  description?: string;
   address?: string;
   phone?: string;
   email?: string;

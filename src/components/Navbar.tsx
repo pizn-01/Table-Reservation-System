@@ -46,7 +46,11 @@ export default function Navbar({ variant = 'public', theme = 'dark', onToggleThe
           transition: 'color 0.2s'
         }}
       >
-        Logo
+        <img 
+          src="/images/blackstone_Logo.png" 
+          alt="Blackstone Logo" 
+          style={{ height: '32px', width: 'auto', display: 'block' }} 
+        />
       </Link>
 
       <div className="res-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>

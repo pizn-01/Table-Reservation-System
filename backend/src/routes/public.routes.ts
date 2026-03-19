@@ -30,6 +30,8 @@ router.get('/:slug/info', async (req: Request, res: Response, next: NextFunction
         id: org.id,
         name: org.name,
         slug: org.slug,
+        description: org.description,
+        logoUrl: org.logoUrl,
         address: org.address,
         phone: org.phone,
         openingTime: org.openingTime,
