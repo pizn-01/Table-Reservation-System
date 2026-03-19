@@ -62,7 +62,7 @@ export default function FloorMapTab({ theme }: FloorMapTabProps) {
       </div>
 
       {/* Sample Sheet */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+      <div className="res-admin-tab-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
         <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0, color: isDark ? '#ffffff' : '#1f2937' }}>
           Sample Sheet
         </h3>

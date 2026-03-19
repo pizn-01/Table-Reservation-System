@@ -97,19 +97,6 @@ export class ReservationService {
 
     const endTime = dto.endTime || addMinutesToTime(dto.startTime, duration);
 
-    // Check table availability if a table is specified
-    if (dto.tableId) {
-      const isAvailable = await this.checkTableAvailability(
-        dto.tableId,
-        dto.reservationDate,
-        dto.startTime,
-        endTime
-      );
-      if (!isAvailable) {
-        throw new AppError('Selected table is not available for this time slot', 409);
-      }
-    }
-
     // Create or find customer
     let customerId: string | null = null;
     if (dto.guestEmail) {
@@ -137,32 +124,39 @@ export class ReservationService {
       }
     }
 
-    const { data, error } = await supabaseAdmin
+    // Use SQL RPC to securely lock table row and insert atomically
+    const { data: rpcData, error } = await supabaseAdmin.rpc('create_reservation_atomic', {
+      p_restaurant_id: restaurantId,
+      p_table_id: dto.tableId || null,
+      p_customer_id: customerId,
+      p_reservation_date: dto.reservationDate,
+      p_start_time: dto.startTime,
+      p_end_time: endTime,
+      p_party_size: dto.partySize,
+      p_guest_first_name: dto.guestFirstName,
+      p_guest_last_name: dto.guestLastName || null,
+      p_guest_email: dto.guestEmail,
+      p_guest_phone: dto.guestPhone || null,
+      p_source: dto.source || 'app',
+      p_special_requests: dto.specialRequests || null,
+      p_created_by: createdBy || null
+    });
+
+    if (error) {
+      if (error.message.includes('Table is no longer available')) {
+        throw new AppError('Table is no longer available for this time slot (booked by another user)', 409);
+      }
+      throw new AppError(`Failed to create reservation: ${error.message}`, 500);
+    }
+    
+    // Fetch the newly created reservation with relation data
+    const { data: createdRes, error: fetchErr } = await supabaseAdmin
       .from('reservations')
-      .insert({
-        restaurant_id: restaurantId,
-        table_id: dto.tableId || null,
-        customer_id: customerId,
-        reservation_date: dto.reservationDate,
-        start_time: dto.startTime,
-        end_time: endTime,
-        party_size: dto.partySize,
-        guest_first_name: dto.guestFirstName,
-        guest_last_name: dto.guestLastName || null,
-        guest_email: dto.guestEmail,
-        guest_phone: dto.guestPhone || null,
-        status: ReservationStatus.CONFIRMED, // Auto-confirm for now
-        source: dto.source || 'app',
-        special_requests: dto.specialRequests || null,
-        payment_method: dto.paymentMethod || null,
-        payment_status: 'bypassed', // Payment bypass per user request
-        confirmed_at: new Date().toISOString(),
-        created_by: createdBy || null,
-      })
       .select('*, tables(id, table_number, name, floor_areas(name))')
+      .eq('id', rpcData.id)
       .single();
 
-    if (error) throw new AppError(`Failed to create reservation: ${error.message}`, 500);
+    if (fetchErr) throw new AppError(`Failed to fetch created reservation: ${fetchErr.message}`, 500);
 
     // Update customer visit link
     if (customerId) {
@@ -175,7 +169,7 @@ export class ReservationService {
       );
     }
 
-    return this.formatReservation(data);
+    return this.formatReservation(createdRes);
   }
 
   /**

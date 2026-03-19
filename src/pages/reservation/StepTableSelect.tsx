@@ -54,7 +54,7 @@ export default function StepTableSelect({ data, updateData }: StepTableSelectPro
           </div>
 
           {/* Table Grid */}
-          <div style={{
+          <div className="res-table-grid" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
             gap: '16px'

@@ -172,7 +172,7 @@ export default function PremiumReservation() {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '16px' }}>Preferred Time</label>
-                  <div style={{ 
+                  <div className="res-prem-time-grid" style={{ 
                     display: 'grid', 
                     gridTemplateColumns: 'repeat(5, 1fr)', 
                     gap: '12px',
@@ -359,7 +359,7 @@ export default function PremiumReservation() {
                   </div>
 
                   {/* Table Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                  <div className="res-prem-table-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                     {categoryTables.map(table => {
                       const badgeStyle = getBadgeStyle(table.type)
                       
@@ -409,7 +409,7 @@ export default function PremiumReservation() {
 
                           {/* Table Details */}
                           <div style={{ flex: 1 }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                            <div className="res-prem-table-header" style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                               <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0 }}>{table.name}</h3>
                               {badgeStyle && (
                                 <div style={{
@@ -455,7 +455,7 @@ export default function PremiumReservation() {
               <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: '0 0 8px 0' }}>Contact Information</h2>
               <p style={{ fontSize: '1rem', color: '#8b949e', margin: '0 0 40px 0' }}>Please provide your details for the reservation</p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+              <div className="res-prem-contact-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>First Name</label>
                   <input 
@@ -559,7 +559,7 @@ export default function PremiumReservation() {
               <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: '0 0 8px 0' }}>Confirm Your Reservation</h2>
               <p style={{ fontSize: '1rem', color: '#8b949e', margin: '0 0 40px 0' }}>Please review your booking details</p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '24px' }}>
+              <div className="res-prem-review-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '24px' }}>
                 {/* Table Card */}
                 <div style={{
                   backgroundColor: '#161F21',
@@ -609,7 +609,7 @@ export default function PremiumReservation() {
                           </div>
                         )}
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '24px', color: '#cfcfcf', fontSize: '0.875rem' }}>
+                      <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '24px', color: '#cfcfcf', fontSize: '0.875rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Users size={16} />
                           <span>Capacity: {Object.values(tables).flat().find(t => t.id === selectedTable)?.capacity || 0} seats</span>
@@ -677,7 +677,7 @@ export default function PremiumReservation() {
                     </div>
                     <div>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 8px 0' }}>Date & Time</h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem' }}>
+                      <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem' }}>
                         <span>Thu, Mar 5, 2026</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Clock size={16} />
@@ -713,7 +713,7 @@ export default function PremiumReservation() {
                     </div>
                     <div style={{ width: '100%' }}>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 12px 0' }}>Contact Information</h3>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem', marginBottom: '12px', whiteSpace: 'nowrap' }}>
+                      <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem', marginBottom: '12px', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Mail size={16} />
                           <span>johndoe@example.com</span>
@@ -737,7 +737,7 @@ export default function PremiumReservation() {
               <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: '0 0 8px 0' }}>Secure Your Reservation</h2>
               <p style={{ fontSize: '1rem', color: '#8b949e', margin: '0 0 40px 0' }}>Complete the payment to confirm your premium table booking.</p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
+              <div className="res-prem-payment-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
                 
                 {/* Left Column: Payment Methods */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>

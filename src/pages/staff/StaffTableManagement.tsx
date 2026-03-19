@@ -121,7 +121,9 @@ export default function StaffTableManagement() {
   }
 
   return (
-    <div style={{
+    <div 
+      className="res-staff-container"
+      style={{
       minHeight: '100vh',
       backgroundColor: '#F6F7F9',
       color: '#111827',
@@ -129,7 +131,7 @@ export default function StaffTableManagement() {
       padding: '40px'
     }}>
       {/* Header Logo */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+      <div className="res-staff-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>Logo</h1>
         <div style={{ display: 'flex', gap: '16px' }}>
           <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><Settings size={20} /></button>
@@ -138,7 +140,7 @@ export default function StaffTableManagement() {
       </div>
 
       {/* Stats row */}
-      <div style={{
+      <div className="res-staff-stats-row" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gap: '20px',
@@ -180,7 +182,7 @@ export default function StaffTableManagement() {
       </div>
 
       {/* Content area */}
-      <div style={{
+      <div className="res-staff-content" style={{
         backgroundColor: '#ffffff',
         borderRadius: '16px',
         border: '1px solid #e5e7eb',
@@ -188,7 +190,7 @@ export default function StaffTableManagement() {
         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
       }}>
         {/* Tabs */}
-        <div style={{
+        <div className="res-staff-tabs" style={{
           display: 'flex',
           gap: '24px',
           padding: '24px 32px',
@@ -228,7 +230,7 @@ export default function StaffTableManagement() {
         {activeTab === 'Day View' && (
           <>
             {/* Detailed Header */}
-            <div style={{
+            <div className="res-staff-day-header" style={{
               padding: '32px',
               display: 'flex',
               justifyContent: 'space-between',
@@ -242,7 +244,7 @@ export default function StaffTableManagement() {
             </div>
 
             {/* Table Grid (Day View) */}
-            <div style={{
+            <div className="res-staff-day-grid" style={{
               padding: '0 32px 32px 32px',
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
@@ -298,7 +300,7 @@ export default function StaffTableManagement() {
                 </div>
 
                 {/* Table Grid (Floor Map Style) */}
-                <div style={{
+                <div className="res-staff-floor-grid" style={{
                   display: 'grid',
                   gridTemplateColumns: 'repeat(4, 1fr)',
                   gap: '40px',
@@ -396,14 +398,14 @@ export default function StaffTableManagement() {
         {activeTab === 'Calendar View' && (
           <div style={{ padding: '0' }}>
             {/* Day Selector Navigation */}
-            <div style={{
+            <div className="res-staff-cal-nav" style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '24px 32px',
               borderBottom: '1px solid #e5e7eb'
             }}>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="res-staff-cal-days" style={{ display: 'flex', gap: '8px' }}>
                 {['Today', 'Tomorrow', 'Wednesday', 'Thursday', 'Friday'].map(day => (
                   <button
                     key={day}
