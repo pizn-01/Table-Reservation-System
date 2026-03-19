@@ -9,7 +9,12 @@ export const validate = (schema: ZodSchema, source: 'body' | 'query' | 'params' 
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       const parsed = schema.parse(req[source]);
-      (req as any)[source] = parsed; // Replace with parsed (sanitized) data
+      // In Express v5, req.query is read-only (getter only).
+      // For body, we can safely reassign with parsed data.
+      // For query/params, we just validate — the original data is still accessible on req.query/req.params.
+      if (source === 'body') {
+        req.body = parsed;
+      }
       next();
     } catch (error: any) {
       if (error instanceof ZodError) {

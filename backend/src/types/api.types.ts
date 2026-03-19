@@ -83,8 +83,12 @@ export interface CreateTableDto {
   shape?: string;
   type?: string;
   isMergeable?: boolean;
+  mergeGroupId?: string | null;
+  splitParentId?: string | null;
   positionX?: number;
   positionY?: number;
+  width?: number;
+  height?: number;
 }
 
 export interface UpdateTableDto extends Partial<CreateTableDto> {

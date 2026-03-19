@@ -2,7 +2,7 @@ import { supabaseAdmin } from '../config/database';
 import { AppError, NotFoundError } from '../middleware/errorHandler';
 import { CreateReservationDto, UpdateReservationDto, ReservationFilterQuery } from '../types/api.types';
 import { ReservationStatus } from '../types/enums';
-import { addMinutesToTime, timeRangesOverlap, getTodayDate } from '../utils/time';
+import { addMinutesToTime, timeRangesOverlap, getTodayDate, timeToMinutes } from '../utils/time';
 import { parsePagination, buildPaginationMeta } from '../utils/pagination';
 import { emailService } from './email.service';
 
@@ -82,21 +82,56 @@ export class ReservationService {
    * Create a new reservation.
    */
   async create(restaurantId: string, dto: CreateReservationDto, createdBy?: string) {
-    // Get restaurant settings for default duration and name for email
+    // Get restaurant settings
     const { data: org } = await supabaseAdmin
       .from('organizations')
-      .select('name, default_reservation_duration_min, max_party_size')
+      .select('name, default_reservation_duration_min, max_party_size, opening_time, closing_time, min_advance_booking_hours, max_advance_booking_days')
       .eq('id', restaurantId)
       .single();
 
-    const duration = org?.default_reservation_duration_min || 90;
-    const maxParty = org?.max_party_size || 20;
+    if (!org) throw new AppError('Restaurant not found', 404);
 
+    const duration = org.default_reservation_duration_min || 90;
+    const maxParty = org.max_party_size || 20;
+
+    // Validate party size
     if (dto.partySize > maxParty) {
       throw new AppError(`Party size cannot exceed ${maxParty}`, 400);
     }
 
-    const endTime = dto.endTime || addMinutesToTime(dto.startTime, duration);
+    // Validate reservation date is not in past
+    const today = getTodayDate();
+    if (dto.reservationDate < today) {
+      throw new AppError('Cannot book reservations in the past', 400);
+    }
+
+    // Validate advance booking limits
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + (org.max_advance_booking_days || 30));
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+    
+    if (dto.reservationDate > maxDateStr) {
+      throw new AppError(`Can only book up to ${org.max_advance_booking_days || 30} days in advance`, 400);
+    }
+
+    // Validate operating hours
+    const openTime = org.opening_time;
+    const closeTime = org.closing_time;
+    
+    if (timeToMinutes(dto.startTime) < timeToMinutes(openTime)) {
+      throw new AppError(`Restaurant does not open until ${openTime}`, 400);
+    }
+
+    let endTime: string;
+    try {
+      endTime = dto.endTime || addMinutesToTime(dto.startTime, duration);
+    } catch (error) {
+      throw new AppError(`Reservation would exceed 24-hour boundary. Please choose an earlier time.`, 400);
+    }
+
+    if (timeToMinutes(endTime) > timeToMinutes(closeTime)) {
+      throw new AppError(`Restaurant closes at ${closeTime}. Please choose an earlier time.`, 400);
+    }
 
     // Create or find customer
     let customerId: string | null = null;
@@ -399,15 +434,41 @@ export class ReservationService {
     startTime: string,
     partySize: number
   ) {
-    // Get restaurant settings for duration
+    // Get restaurant settings for duration, hours, and capacity
     const { data: org } = await supabaseAdmin
       .from('organizations')
-      .select('default_reservation_duration_min')
+      .select('default_reservation_duration_min, opening_time, closing_time, max_party_size')
       .eq('id', restaurantId)
       .single();
 
-    const duration = org?.default_reservation_duration_min || 90;
-    const endTime = addMinutesToTime(startTime, duration);
+    if (!org) throw new AppError('Restaurant not found', 404);
+
+    const duration = org.default_reservation_duration_min || 90;
+    const maxParty = org.max_party_size || 20;
+
+    // Validate party size
+    if (partySize > maxParty) {
+      throw new AppError(`Party size cannot exceed ${maxParty}`, 400);
+    }
+
+    // Validate operating hours
+    const openTime = org.opening_time;
+    const closeTime = org.closing_time;
+    
+    if (timeToMinutes(startTime) < timeToMinutes(openTime)) {
+      throw new AppError(`Restaurant does not open until ${openTime}`, 400);
+    }
+
+    let endTime: string;
+    try {
+      endTime = addMinutesToTime(startTime, duration);
+    } catch (error) {
+      throw new AppError(`Reservation duration would exceed 24 hours. Please choose an earlier time.`, 400);
+    }
+
+    if (timeToMinutes(endTime) > timeToMinutes(closeTime)) {
+      throw new AppError(`Restaurant closes at ${closeTime}. Please choose an earlier time.`, 400);
+    }
 
     // Get all active tables with sufficient capacity
     const { data: tables } = await supabaseAdmin

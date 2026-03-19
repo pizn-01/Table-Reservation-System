@@ -56,6 +56,27 @@ export default function UserReservationWizard() {
   }
 
   const nextStep = async () => {
+    setSubmitError('')
+
+    if (currentStep === 1) {
+      if (!data.time || !data.date) {
+        setSubmitError('Please select a date and time')
+        return
+      }
+    }
+    if (currentStep === 2) {
+      if (!data.tableId) {
+        setSubmitError('Please select a table')
+        return
+      }
+    }
+    if (currentStep === 3) {
+      if (!data.firstName.trim() || !data.email.trim() || !data.phone.trim()) {
+        setSubmitError('Please provide your First Name, Email, and Phone Number')
+        return
+      }
+    }
+
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1)
     } else {

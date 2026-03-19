@@ -112,6 +112,11 @@ export class TableController {
         capacity: parseInt(row['Capacity'] || row['capacity'] || '2', 10),
         area: row['Area'] || row['area'] || '',
         type: row['Type'] || row['type'] || '',
+        positionX: row['position_x'] || row['PositionX'] ? parseFloat(row['position_x'] || row['PositionX']) : undefined,
+        positionY: row['position_y'] || row['PositionY'] ? parseFloat(row['position_y'] || row['PositionY']) : undefined,
+        isMergeable: ['true', '1', 'yes'].includes((row['is_mergeable'] || row['Mergeable'] || '').toLowerCase()),
+        width: row['width'] || row['Width'] ? parseFloat(row['width'] || row['Width']) : undefined,
+        height: row['height'] || row['Height'] ? parseFloat(row['height'] || row['Height']) : undefined,
       }));
 
       const result = await tableService.importTables(param(req, 'orgId'), tables);
@@ -143,6 +148,19 @@ export class TableController {
         parseInt(partySize, 10)
       );
 
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+  async batchUpdatePositions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { positions } = req.body;
+      if (!Array.isArray(positions) || positions.length === 0) {
+        res.status(400).json({ success: false, error: 'positions array is required' });
+        return;
+      }
+      const result = await tableService.batchUpdatePositions(param(req, 'orgId'), positions);
       res.json({ success: true, data: result });
     } catch (error) {
       next(error);

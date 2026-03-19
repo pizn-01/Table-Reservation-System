@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Settings, LogOut, Moon, Sun } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 interface NavbarProps {
   variant?: 'public' | 'admin' | 'setup'
@@ -9,6 +10,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ variant = 'public', theme = 'dark', onToggleTheme }: NavbarProps) {
+  const { logout } = useAuth()
   const [showSettings, setShowSettings] = useState(false)
   const settingsRef = useRef<HTMLDivElement>(null)
   const isDark = theme === 'dark'
@@ -131,6 +133,7 @@ export default function Navbar({ variant = 'public', theme = 'dark', onToggleThe
               )}
             </div>
             <button
+              onClick={logout}
               style={{
                 padding: '8px',
                 color: '#8b949e',

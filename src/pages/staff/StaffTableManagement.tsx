@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { Users, MapPin, Settings, LogOut, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import api, { ApiError } from '../../lib/api'
+import FloorPlanCanvas, { FloorTable } from '../../components/FloorPlanCanvas'
 
 // ─── Types ──────────────────────────────────────────────
 
@@ -84,6 +85,7 @@ export default function StaffTableManagement() {
   const [bookings, setBookings] = useState<CalendarBooking[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [viewMode, setViewMode] = useState<'standard' | 'merged' | 'split'>('standard')
 
   // ── Fetch Tables ───────────────────────────────────────
   useEffect(() => {
@@ -410,90 +412,70 @@ export default function StaffTableManagement() {
           </>
         )}
 
-        {/* ─── Table View (Floor Map) ────────────────────── */}
+        {/* ─── Table View (Interactive Floor Plan) ────────────── */}
         {activeTab === 'Table View' && (
-          <div style={{ padding: '32px' }}>
-            {areaGroups.length === 0 ? (
-              <p style={{ color: '#6b7280', textAlign: 'center', padding: '32px', fontSize: '0.875rem' }}>No tables found.</p>
-            ) : areaGroups.map((section, sIdx) => (
-              <div key={section.title} style={{ marginBottom: sIdx === areaGroups.length - 1 ? 0 : '60px' }}>
-                {/* Section Divider */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '40px' }}>
-                  <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }} />
-                  <span style={{ color: '#C99C63', fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                    {section.title}
-                  </span>
-                  <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }} />
-                </div>
+          <div style={{ padding: '24px' }}>
+            {/* View Mode Toggle */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              marginBottom: '20px',
+            }}>
+              <span style={{ color: '#8b949e', fontSize: '0.8125rem', fontWeight: 600, marginRight: '8px' }}>View:</span>
+              {(['standard', 'merged', 'split'] as const).map(mode => (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  style={{
+                    padding: '6px 16px',
+                    borderRadius: '6px',
+                    fontSize: '0.8125rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    border: viewMode === mode ? '1px solid #C99C63' : '1px solid #30363d',
+                    backgroundColor: viewMode === mode ? 'rgba(201,156,99,0.15)' : 'transparent',
+                    color: viewMode === mode ? '#C99C63' : '#8b949e',
+                    textTransform: 'capitalize',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {mode}
+                </button>
+              ))}
+              <span style={{ flex: 1 }} />
+              <span style={{ color: '#8b949e', fontSize: '0.75rem' }}>
+                Hold Shift while dragging to snap to grid
+              </span>
+            </div>
 
-                {/* Table Grid (Floor Map Style) */}
-                <div className="res-staff-floor-grid" style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(4, 1fr)',
-                  gap: '40px',
-                  rowGap: '60px'
-                }}>
-                  {section.tables.map(table => {
-                    const currentStatus = getTableCurrentStatus(table)
-                    return (
-                      <div key={table.id} style={{ position: 'relative', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {/* Cross (Chairs) — Horizontal */}
-                        <div style={{
-                          position: 'absolute',
-                          width: '240px',
-                          height: '40px',
-                          backgroundColor: '#f3f4f6',
-                          border: '1px solid #e5e7eb',
-                          boxSizing: 'border-box',
-                          borderRadius: '8px'
-                        }} />
-                        {/* Vertical */}
-                        <div style={{
-                          position: 'absolute',
-                          width: '40px',
-                          height: '190px',
-                          backgroundColor: '#f3f4f6',
-                          border: '1px solid #e5e7eb',
-                          boxSizing: 'border-box',
-                          borderRadius: '8px'
-                        }} />
-
-                        {/* Main Table Card */}
-                        <div style={{
-                          position: 'relative',
-                          width: '135px',
-                          height: '100px',
-                          backgroundColor: '#ffffff',
-                          border: '1px solid #e5e7eb',
-                          borderRadius: '10px',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          padding: '12px',
-                          zIndex: 1
-                        }}>
-                          <div style={{
-                            backgroundColor: getStatusBg(currentStatus),
-                            color: getStatusColor(currentStatus),
-                            fontSize: '0.6875rem',
-                            padding: '4px 12px',
-                            borderRadius: '100px',
-                            marginBottom: '8px',
-                            fontWeight: 600,
-                            textTransform: 'capitalize'
-                          }}>
-                            {currentStatus}
-                          </div>
-                          <h5 style={{ fontSize: '1rem', fontWeight: 700, margin: '2px 0 4px 0', color: '#111827' }}>Table {table.table_number}</h5>
-                          <p style={{ fontSize: '0.8125rem', color: '#6b7280', margin: 0 }}>Capacity {table.capacity}</p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
+            {tables.length === 0 ? (
+              <p style={{ color: '#6b7280', textAlign: 'center', padding: '32px', fontSize: '0.875rem' }}>No tables found. Add tables from the Setup Wizard.</p>
+            ) : (
+              <FloorPlanCanvas
+                tables={tables.map(t => ({
+                  id: t.id,
+                  tableNumber: t.table_number,
+                  name: `Table ${t.table_number}`,
+                  capacity: t.capacity,
+                  area: t.area_name ? { id: t.area_name, name: t.area_name } : null,
+                  status: t.status,
+                  positionX: (t as any).positionX ?? (t as any).position_x ?? null,
+                  positionY: (t as any).positionY ?? (t as any).position_y ?? null,
+                  isMergeable: (t as any).isMergeable ?? (t as any).is_mergeable ?? false,
+                  mergeGroupId: (t as any).mergeGroupId ?? (t as any).merge_group_id ?? null,
+                  splitParentId: (t as any).splitParentId ?? (t as any).split_parent_id ?? null,
+                  width: (t as any).width ?? 120,
+                  height: (t as any).height ?? 90,
+                } as FloorTable))}
+                orgId={orgId!}
+                viewMode={viewMode}
+                getTableStatus={(_t) => {
+                  const matchingTable = tables.find(tt => tt.id === _t.id)
+                  return matchingTable ? getTableCurrentStatus(matchingTable) : 'available'
+                }}
+              />
+            )}
           </div>
         )}
 

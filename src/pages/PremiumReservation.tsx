@@ -72,6 +72,27 @@ export default function PremiumReservation() {
   }
 
   const handleNext = async () => {
+    setSubmitError('')
+
+    if (step === 1) {
+      if (!selectedTime || !dateVal) {
+        setSubmitError('Please select a date and time')
+        return
+      }
+    }
+    if (step === 2) {
+      if (!selectedTable) {
+        setSubmitError('Please select a table')
+        return
+      }
+    }
+    if (step === 4) {
+      if (!contactInfo.firstName.trim() || !contactInfo.email.trim() || !contactInfo.phone.trim()) {
+        setSubmitError('Please provide your First Name, Email, and Phone Number')
+        return
+      }
+    }
+
     if (step < 5) {
       setStep(step + 1)
     } else if (step === 5) {

@@ -1,9 +1,9 @@
 interface StatusBadgeProps {
-  status: 'confirmed' | 'seated' | 'arrived' | 'available' | 'cancelled' | 'no-show' | 'pending' | 'manager' | 'host' | 'viewer'
+  status: string
   label?: string
 }
 
-const statusConfig = {
+const statusConfig: Record<string, { color: string; border: string; bg: string; label: string }> = {
   confirmed: { color: '#00B5CE', border: 'none', bg: 'rgba(0, 181, 206, 0.15)', label: 'Confirmed' },
   seated: { color: '#E5484D', border: 'none', bg: 'rgba(229, 72, 77, 0.15)', label: 'Seated' },
   arrived: { color: '#d29922', border: 'none', bg: 'rgba(210,153,34,0.15)', label: 'Arrived' },
@@ -17,13 +17,14 @@ const statusConfig = {
 }
 
 export default function StatusBadge({ status, label }: StatusBadgeProps) {
-  const config = statusConfig[status]
+  const defaultConfig = { color: '#8b949e', border: 'none', bg: 'rgba(139,148,158,0.15)', label: status || 'Unknown' }
+  const config = statusConfig[status] || defaultConfig
   return (
     <span style={{
       display: 'inline-flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '4px 16px', // Matches spacious pill shape
+      padding: '4px 16px',
       borderRadius: '16px',
       fontSize: '0.75rem',
       fontWeight: 500,

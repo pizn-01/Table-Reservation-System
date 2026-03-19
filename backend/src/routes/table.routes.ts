@@ -67,6 +67,12 @@ router.post('/import',
   (req, res, next) => tableController.importTables(req, res, next)
 );
 
+// Batch update positions (drag-and-drop)
+router.patch('/positions',
+  requireMinRole(UserRole.MANAGER),
+  (req, res, next) => tableController.batchUpdatePositions(req, res, next)
+);
+
 router.put('/:id',
   requireMinRole(UserRole.MANAGER),
   validate(updateTableSchema),

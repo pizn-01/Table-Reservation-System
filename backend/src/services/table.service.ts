@@ -102,6 +102,10 @@ export class TableService {
         is_mergeable: dto.isMergeable || false,
         position_x: dto.positionX || null,
         position_y: dto.positionY || null,
+        merge_group_id: dto.mergeGroupId || null,
+        split_parent_id: dto.splitParentId || null,
+        width: dto.width || 135,
+        height: dto.height || 100,
       })
       .select('*, floor_areas(id, name)')
       .single();
@@ -123,6 +127,10 @@ export class TableService {
     if (dto.isMergeable !== undefined) updateData.is_mergeable = dto.isMergeable;
     if (dto.positionX !== undefined) updateData.position_x = dto.positionX;
     if (dto.positionY !== undefined) updateData.position_y = dto.positionY;
+    if (dto.mergeGroupId !== undefined) updateData.merge_group_id = dto.mergeGroupId;
+    if (dto.splitParentId !== undefined) updateData.split_parent_id = dto.splitParentId;
+    if (dto.width !== undefined) updateData.width = dto.width;
+    if (dto.height !== undefined) updateData.height = dto.height;
     if (dto.isActive !== undefined) updateData.is_active = dto.isActive;
 
     const { data, error } = await supabaseAdmin
@@ -153,7 +161,17 @@ export class TableService {
    */
   async importTables(
     restaurantId: string,
-    tables: { tableNumber: string; capacity: number; area: string; type: string }[]
+    tables: {
+      tableNumber: string;
+      capacity: number;
+      area: string;
+      type: string;
+      positionX?: number;
+      positionY?: number;
+      isMergeable?: boolean;
+      width?: number;
+      height?: number;
+    }[]
   ) {
     // First, ensure all areas exist
     const areaNames = [...new Set(tables.map((t) => t.area))];
@@ -186,7 +204,6 @@ export class TableService {
       }
     }
 
-    // Insert tables
     const tableRecords = tables.map((t) => ({
       restaurant_id: restaurantId,
       table_number: t.tableNumber,
@@ -194,6 +211,11 @@ export class TableService {
       capacity: t.capacity,
       area_id: areaMap[t.area] || null,
       type: t.type || null,
+      position_x: t.positionX ?? null,
+      position_y: t.positionY ?? null,
+      is_mergeable: t.isMergeable ?? false,
+      width: t.width ?? 135,
+      height: t.height ?? 100,
     }));
 
     const { data, error } = await supabaseAdmin
@@ -220,10 +242,44 @@ export class TableService {
       isMergeable: row.is_mergeable,
       positionX: row.position_x,
       positionY: row.position_y,
+      mergeGroupId: row.merge_group_id,
+      splitParentId: row.split_parent_id,
+      width: row.width || 135,
+      height: row.height || 100,
       isActive: row.is_active,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
+  }
+
+  /**
+   * Batch update table positions (for drag-and-drop).
+   */
+  async batchUpdatePositions(
+    restaurantId: string,
+    positions: { id: string; positionX: number; positionY: number }[]
+  ) {
+    const results = [];
+    for (const pos of positions) {
+      const { data, error } = await supabaseAdmin
+        .from('tables')
+        .update({
+          position_x: pos.positionX,
+          position_y: pos.positionY,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', pos.id)
+        .eq('restaurant_id', restaurantId)
+        .select('id')
+        .single();
+
+      if (error) {
+        console.error(`Failed to update position for table ${pos.id}:`, error.message);
+      } else {
+        results.push(data);
+      }
+    }
+    return { updated: results.length };
   }
 
   private formatArea(row: any) {

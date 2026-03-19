@@ -9,8 +9,12 @@ export const createTableSchema = z.object({
   shape: z.enum(['rectangle', 'round', 'square']).optional(),
   type: z.string().max(50).optional(),
   isMergeable: z.boolean().optional(),
+  mergeGroupId: z.string().uuid().nullable().optional(),
+  splitParentId: z.string().uuid().nullable().optional(),
   positionX: z.number().optional(),
   positionY: z.number().optional(),
+  width: z.number().optional(),
+  height: z.number().optional(),
 });
 
 export const updateTableSchema = createTableSchema.partial().extend({

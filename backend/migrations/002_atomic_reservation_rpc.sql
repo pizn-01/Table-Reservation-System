@@ -3,6 +3,7 @@
 -- Description: Creates a Postgres RPC to safely create reservations
 --              using row-level locking (FOR UPDATE) to prevent 
 --              concurrent double-booking of the same table.
+--              Includes comprehensive validation for hours and time boundaries.
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION create_reservation_atomic(
@@ -25,13 +26,55 @@ DECLARE
     v_conflict_count INT;
     v_reservation_id UUID;
     v_result JSONB;
+    v_opening_time TIME;
+    v_closing_time TIME;
+    v_max_party INT;
+    v_table_capacity INT;
 BEGIN
+    -- 0. Fetch and validate restaurant settings
+    SELECT opening_time, closing_time, max_party_size 
+    INTO v_opening_time, v_closing_time, v_max_party
+    FROM organizations 
+    WHERE id = p_restaurant_id;
+    
+    IF v_opening_time IS NULL THEN
+        RAISE EXCEPTION 'Restaurant not found';
+    END IF;
+    
+    -- Validate party size
+    IF p_party_size > v_max_party THEN
+        RAISE EXCEPTION 'Party size cannot exceed % guests', v_max_party;
+    END IF;
+    
+    -- Validate operating hours
+    IF p_start_time < v_opening_time THEN
+        RAISE EXCEPTION 'Restaurant does not open until %', v_opening_time;
+    END IF;
+    
+    IF p_end_time > v_closing_time THEN
+        RAISE EXCEPTION 'Restaurant closes at %', v_closing_time;
+    END IF;
+    
+    -- Validate time boundaries (no crossing midnight)
+    IF p_end_time <= p_start_time THEN
+        RAISE EXCEPTION 'End time must be after start time';
+    END IF;
+
     -- 1. Lock the table row to prevent concurrent booking for the exact same table
     -- If multiple requests try to book this table simultaneously, they will queue here.
     IF p_table_id IS NOT NULL THEN
-        PERFORM id FROM tables 
+        SELECT capacity INTO v_table_capacity FROM tables 
         WHERE id = p_table_id AND restaurant_id = p_restaurant_id 
         FOR UPDATE;
+        
+        IF v_table_capacity IS NULL THEN
+            RAISE EXCEPTION 'Table not found';
+        END IF;
+
+        -- Verify table capacity match party size
+        IF v_table_capacity < p_party_size THEN
+            RAISE EXCEPTION 'Table capacity (%) is less than party size (%)', v_table_capacity, p_party_size;
+        END IF;
 
         -- 2. Check for overlapping reservations for this table
         SELECT COUNT(*) INTO v_conflict_count

@@ -11,6 +11,7 @@ export const createOrganizationSchema = z.object({
 
 export const updateOrganizationSchema = z.object({
   name: z.string().min(2).max(255).optional(),
+  description: z.string().max(1000).optional(),
   address: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email().optional(),

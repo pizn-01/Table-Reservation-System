@@ -61,12 +61,12 @@ export default function SetupWizard() {
             openingTime: details.openingTime,
             closingTime: details.closingTime,
           })
-          await api.patch(`/organizations/${orgId}/setup`, { step: 1 })
+          await api.patch(`/organizations/${orgId}/setup`, { setupStep: 1 })
           break
         }
         case 2: {
           // Floor map — CSV already uploaded or tables manually added
-          await api.patch(`/organizations/${orgId}/setup`, { step: 2 })
+          await api.patch(`/organizations/${orgId}/setup`, { setupStep: 2 })
           break
         }
         case 3: {
@@ -75,7 +75,7 @@ export default function SetupWizard() {
             allowMergeableTables: rules.mergeable,
             allowWalkIns: rules.walkIns,
           })
-          await api.patch(`/organizations/${orgId}/setup`, { step: 3 })
+          await api.patch(`/organizations/${orgId}/setup`, { setupStep: 3 })
           break
         }
         case 4: {
@@ -94,7 +94,7 @@ export default function SetupWizard() {
             }
           }
           // Mark setup as complete
-          await api.patch(`/organizations/${orgId}/setup`, { step: 4 })
+          await api.patch(`/organizations/${orgId}/setup`, { setupStep: 4 })
           // Update local restaurant state
           if (restaurant) {
             setRestaurant({ ...restaurant, setupCompleted: true })
