@@ -3,6 +3,9 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
+import CustomerSignUp from './pages/CustomerSignUp'
+import CustomerLogin from './pages/CustomerLogin'
+import CustomerDashboard from './pages/CustomerDashboard'
 import ReservationWizard from './pages/reservation/ReservationWizard'
 import BookingConfirmed from './pages/reservation/BookingConfirmed'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -25,12 +28,15 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/customer-signup" element={<CustomerSignUp />} />
+      <Route path="/customer-login" element={<CustomerLogin />} />
       <Route path="/staff-login" element={<StaffLogin />} />
       <Route path="/book-a-table" element={<BookATableWizard />} />
       <Route path="/public-booking-confirmed" element={<PublicBookingConfirmed />} />
 
       {/* ─── Protected Routes (Auth Required) ──────── */}
       <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
+      <Route path="/customer-dashboard" element={<ProtectedRoute><CustomerDashboard /></ProtectedRoute>} />
       <Route path="/setup" element={<ProtectedRoute><SetupWizard /></ProtectedRoute>} />
       <Route path="/reserve" element={<ProtectedRoute><ReservationWizard /></ProtectedRoute>} />
       <Route path="/booking-confirmed" element={<ProtectedRoute><BookingConfirmed /></ProtectedRoute>} />

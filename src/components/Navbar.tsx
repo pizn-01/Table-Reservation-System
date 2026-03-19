@@ -57,18 +57,32 @@ export default function Navbar({ variant = 'public', theme = 'dark', onToggleThe
 
       <div className="res-nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {variant === 'public' && (
-          <Link
-            to="/login"
-            className="btn-gold"
-            style={{
-              fontSize: '0.875rem',
-              padding: '10px 24px',
-              borderRadius: '8px',
-              textDecoration: 'none',
-            }}
-          >
-            Login
-          </Link>
+          <>
+            <Link
+              to="/customer-login"
+              className="btn-gold"
+              style={{
+                fontSize: '0.875rem',
+                padding: '10px 24px',
+                borderRadius: '8px',
+                textDecoration: 'none',
+              }}
+            >
+              Login
+            </Link>
+            <Link
+              to="/customer-signup"
+              className="btn-gold"
+              style={{
+                fontSize: '0.875rem',
+                padding: '10px 24px',
+                borderRadius: '8px',
+                textDecoration: 'none',
+              }}
+            >
+              Sign Up
+            </Link>
+          </>
         )}
         {(variant === 'admin' || variant === 'setup') && (
           <>

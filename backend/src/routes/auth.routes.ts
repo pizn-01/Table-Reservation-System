@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
 import { validate } from '../middleware/validator';
-import { signupSchema, loginSchema, staffLoginSchema, forgotPasswordSchema, resetPasswordSchema, refreshTokenSchema, acceptInviteSchema } from '../validators/auth.validator';
+import { signupSchema, loginSchema, staffLoginSchema, customerSignupSchema, customerLoginSchema, forgotPasswordSchema, resetPasswordSchema, refreshTokenSchema, acceptInviteSchema } from '../validators/auth.validator';
 import { staffService } from '../services/staff.service';
 import { authLimiter } from '../middleware/rateLimiter';
 
@@ -11,10 +11,18 @@ const router = Router();
 // Apply auth rate limiting to all auth routes to prevent brute-force
 router.use(authLimiter);
 
-// Public routes
+// Public routes — Restaurant owner signup
 router.post('/signup', validate(signupSchema), (req, res, next) => authController.signup(req, res, next));
+
+// Public routes — Restaurant staff/admin login
 router.post('/login', validate(loginSchema), (req, res, next) => authController.login(req, res, next));
 router.post('/staff-login', validate(staffLoginSchema), (req, res, next) => authController.staffLogin(req, res, next));
+
+// Public routes — Customer (diner) authentication
+router.post('/customer-signup', validate(customerSignupSchema), (req, res, next) => authController.customerSignup(req, res, next));
+router.post('/customer-login', validate(customerLoginSchema), (req, res, next) => authController.customerLogin(req, res, next));
+
+// Public routes — Password recovery
 router.post('/forgot-password', validate(forgotPasswordSchema), (req, res, next) => authController.forgotPassword(req, res, next));
 router.post('/reset-password', validate(resetPasswordSchema), (req, res, next) => authController.resetPassword(req, res, next));
 router.post('/refresh', validate(refreshTokenSchema), (req, res, next) => authController.refreshToken(req, res, next));

@@ -29,6 +29,8 @@ interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<{ user: User; restaurant?: Restaurant }>;
   signup: (data: SignupData) => Promise<{ user: User; restaurant?: Restaurant }>;
   staffLogin: (email: string, password: string, restaurantSlug?: string) => Promise<{ user: User; restaurant?: Restaurant }>;
+  customerSignup: (data: CustomerSignupData) => Promise<{ user: User }>;
+  customerLogin: (email: string, password: string) => Promise<{ user: User }>;
   logout: () => void;
   setRestaurant: (restaurant: Restaurant) => void;
 }
@@ -40,6 +42,14 @@ export interface SignupData {
   password: string;
   country?: string;
   timezone?: string;
+}
+
+export interface CustomerSignupData {
+  firstName: string;
+  lastName?: string;
+  email: string;
+  password: string;
+  phone?: string;
 }
 
 interface AuthResponse {
@@ -186,6 +196,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { user: response.data.user, restaurant: response.data.restaurant };
   }, []);
 
+  const customerSignup = useCallback(async (data: CustomerSignupData) => {
+    const response = await api.post<AuthResponse>('/auth/customer-signup', data, { skipAuth: true });
+    if (!response.success || !response.data) {
+      throw new ApiError(response.error || 'Signup failed', 400);
+    }
+
+    storeAuthData(response.data);
+    setState({
+      user: response.data.user,
+      restaurant: null,
+      token: response.data.token,
+      isAuthenticated: true,
+      isLoading: false,
+    });
+
+    return { user: response.data.user };
+  }, []);
+
+  const customerLogin = useCallback(async (email: string, password: string) => {
+    const response = await api.post<AuthResponse>('/auth/customer-login', { email, password }, { skipAuth: true });
+    if (!response.success || !response.data) {
+      throw new ApiError(response.error || 'Login failed', 401);
+    }
+
+    storeAuthData(response.data);
+    setState({
+      user: response.data.user,
+      restaurant: null,
+      token: response.data.token,
+      isAuthenticated: true,
+      isLoading: false,
+    });
+
+    return { user: response.data.user };
+  }, []);
+
   const logout = useCallback(() => {
     // Fire-and-forget server logout
     api.post('/auth/logout').catch(() => {});
@@ -200,7 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ ...state, login, signup, staffLogin, logout, setRestaurant: setRestaurantFn }}
+      value={{ ...state, login, signup, staffLogin, customerSignup, customerLogin, logout, setRestaurant: setRestaurantFn }}
     >
       {children}
     </AuthContext.Provider>

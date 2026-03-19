@@ -197,6 +197,140 @@ export class AuthService {
   }
 
   /**
+   * Customer self-registration (for diners).
+   * Creates a customer account WITHOUT a restaurant/organization.
+   */
+  async customerSignup(dto: {
+    firstName: string;
+    lastName?: string;
+    email: string;
+    password: string;
+    phone?: string;
+  }): Promise<AuthResponse> {
+    // Check if customer already exists
+    const { data: existingCustomer } = await supabaseAdmin
+      .from('customers')
+      .select('id')
+      .eq('email', dto.email)
+      .single();
+
+    if (existingCustomer) {
+      throw new ConflictError('An account with this email already exists');
+    }
+
+    // Create Supabase Auth user
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: dto.email,
+      password: dto.password,
+      email_confirm: true,
+      user_metadata: {
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        role: UserRole.CUSTOMER,
+      },
+    });
+
+    if (authError || !authData.user) {
+      throw new AppError(authError?.message || 'Failed to create account', 500);
+    }
+
+    const userId = authData.user.id;
+
+    // Create customer record
+    const { data: customer, error: customerError } = await supabaseAdmin
+      .from('customers')
+      .insert({
+        user_id: userId,
+        first_name: dto.firstName,
+        last_name: dto.lastName || null,
+        email: dto.email,
+        phone: dto.phone || null,
+      })
+      .select()
+      .single();
+
+    if (customerError || !customer) {
+      // Cleanup: delete auth user if customer creation failed
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      throw new AppError('Failed to create customer profile', 500);
+    }
+
+    const token = generateToken({
+      sub: userId,
+      email: dto.email,
+      role: UserRole.CUSTOMER,
+    });
+
+    const refreshToken = generateRefreshToken(userId);
+
+    return {
+      user: {
+        id: userId,
+        email: dto.email,
+        role: UserRole.CUSTOMER,
+        name: dto.firstName,
+      },
+      token,
+      refreshToken,
+    };
+  }
+
+  /**
+   * Customer login.
+   */
+  async customerLogin(dto: LoginDto): Promise<AuthResponse> {
+    // Try to authenticate via Supabase
+    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+      email: dto.email,
+      password: dto.password,
+    });
+
+    if (authError || !authData.user) {
+      throw new AppError('Invalid email or password', 401);
+    }
+
+    const userId = authData.user.id;
+
+    // Fetch customer record
+    const { data: customer, error: customerError } = await supabaseAdmin
+      .from('customers')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (customerError || !customer) {
+      // Auth succeeded but no customer profile - this shouldn't happen normally
+      // Could be a staff member trying to use customer endpoint
+      throw new AppError('Customer account not found', 401);
+    }
+
+    // Update last activity
+    await supabaseAdmin
+      .from('customers')
+      .update({ last_engaged_at: new Date().toISOString() })
+      .eq('id', customer.id);
+
+    const token = generateToken({
+      sub: userId,
+      email: dto.email,
+      role: UserRole.CUSTOMER,
+    });
+
+    const refreshToken = generateRefreshToken(userId);
+
+    return {
+      user: {
+        id: userId,
+        email: dto.email,
+        role: UserRole.CUSTOMER,
+        name: customer.first_name,
+      },
+      token,
+      refreshToken,
+    };
+  }
+
+  /**
    * Get current user profile from JWT.
    */
   async getProfile(userId: string) {
