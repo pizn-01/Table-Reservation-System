@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { ApiError } from '../lib/api'
 
 export default function SignUp() {
   const navigate = useNavigate()
+  const { signup } = useAuth()
   const [form, setForm] = useState({
     businessName: '',
     ownerName: '',
@@ -13,14 +16,37 @@ export default function SignUp() {
     timezone: 'GMT+0 London',
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    navigate('/setup')
+    setError('')
+    setIsLoading(true)
+
+    try {
+      await signup({
+        businessName: form.businessName,
+        ownerName: form.ownerName,
+        email: form.email,
+        password: form.password,
+        country: form.country,
+        timezone: form.timezone,
+      })
+      navigate('/setup')
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -77,6 +103,20 @@ export default function SignUp() {
         }}>
           Set up table flow for your business
         </p>
+
+        {error && (
+          <div style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '8px',
+            padding: '10px 16px',
+            marginBottom: '12px',
+            color: '#ef4444',
+            fontSize: '0.8125rem',
+          }}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
@@ -253,20 +293,21 @@ export default function SignUp() {
             </div>
           </div>
 
-          <button type="submit" style={{
+          <button type="submit" disabled={isLoading} style={{
             width: '100%',
             padding: '14px',
-            backgroundColor: '#C99C63',
+            backgroundColor: isLoading ? '#8b7650' : '#C99C63',
             color: '#ffffff',
             border: 'none',
             borderRadius: '10px',
             fontWeight: 600,
             fontSize: '1rem',
-            cursor: 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             marginTop: '8px',
+            opacity: isLoading ? 0.7 : 1,
           }}
           >
-            Sign In
+            {isLoading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
 

@@ -1,22 +1,82 @@
-import { Search, MoreVertical } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, MoreVertical, Loader2, Trash2 } from 'lucide-react'
 import StatusBadge from '../../../components/StatusBadge'
+import api, { ApiError } from '../../../lib/api'
 
 interface StaffManagementTabProps {
   theme: 'dark' | 'light'
+  orgId?: string
 }
 
-const staff = [
-  { id: 1, name: 'Sarah Chen', email: 'sarahchen@example.com', lastActive: '2 min ago', status: 'manager' as const },
-  { id: 2, name: 'James Wilson', email: 'jameswilson@example.com', lastActive: '5 min ago', status: 'manager' as const },
-  { id: 3, name: 'Maria Garcia', email: 'mariagarcia@example.com', lastActive: '3 min ago', status: 'host' as const },
-  { id: 4, name: 'Robert Kim', email: 'robertkim@example.com', lastActive: '10 min ago', status: 'manager' as const },
-  { id: 5, name: 'Emily Davis', email: 'emilydavis@example.com', lastActive: '15 min ago', status: 'host' as const },
-  { id: 6, name: 'Tom Miller', email: 'tommiller@example.com', lastActive: '2 min ago', status: 'viewer' as const },
-  { id: 7, name: 'Tom Miller', email: 'tommiller@example.com', lastActive: '2 min ago', status: 'viewer' as const },
-]
+interface StaffMember {
+  id: string
+  name: string
+  email: string
+  role: string
+  last_active?: string
+  created_at?: string
+}
 
-export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
+export default function StaffManagementTab({ theme, orgId }: StaffManagementTabProps) {
   const isDark = theme === 'dark'
+  const [staff, setStaff] = useState<StaffMember[]>([])
+  const [filtered, setFiltered] = useState<StaffMember[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState('all')
+
+  useEffect(() => {
+    if (!orgId) return
+    const fetchStaff = async () => {
+      setIsLoading(true)
+      setError('')
+      try {
+        const res = await api.get<StaffMember[]>(`/organizations/${orgId}/staff`)
+        setStaff(res.data || [])
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : 'Failed to load staff.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchStaff()
+  }, [orgId])
+
+  // Client-side filtering
+  useEffect(() => {
+    let result = staff
+    if (search) {
+      const q = search.toLowerCase()
+      result = result.filter(m => m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q))
+    }
+    if (roleFilter !== 'all') {
+      result = result.filter(m => m.role === roleFilter)
+    }
+    setFiltered(result)
+  }, [staff, search, roleFilter])
+
+  const handleRemove = async (id: string) => {
+    if (!window.confirm('Remove this staff member?')) return
+    try {
+      await api.delete(`/organizations/${orgId}/staff/${id}`)
+      setStaff(prev => prev.filter(m => m.id !== id))
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'Failed to remove staff member.')
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>
+        <Loader2 size={28} style={{ color: '#C99C63', animation: 'spin 1s linear infinite' }} />
+      </div>
+    )
+  }
+
+  if (error) {
+    return <div style={{ color: '#ef4444', textAlign: 'center', padding: '24px', fontSize: '0.875rem' }}>{error}</div>
+  }
 
   return (
     <div>
@@ -26,103 +86,73 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
           <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: isDark ? '#8b949e' : '#6b7280' }} />
           <input
             type="text"
-            placeholder="Search name, phone, email or skills"
+            placeholder="Search name or email"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             style={{
-              width: '100%',
-              padding: '10px 16px 10px 40px',
-              backgroundColor: isDark ? '#161B22' : '#ffffff',
-              border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
-              borderRadius: '8px',
-              color: isDark ? '#ffffff' : '#1f2937',
-              fontSize: '0.875rem'
+              width: '100%', padding: '10px 16px 10px 40px',
+              backgroundColor: isDark ? '#161B22' : '#ffffff', border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
+              borderRadius: '8px', color: isDark ? '#ffffff' : '#1f2937', fontSize: '0.875rem'
             }}
           />
         </div>
-        <select style={{
-          padding: '10px 16px',
-          backgroundColor: isDark ? '#161B22' : '#ffffff',
-          border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
-          borderRadius: '8px',
-          color: isDark ? '#ffffff' : '#1f2937',
-          fontSize: '0.875rem',
-          cursor: 'pointer',
-          appearance: 'none', // to allow custom styling if needed, though simple select is fine for MVP
-          minWidth: '150px'
-        }}>
-          <option>All Roles</option>
-          <option>Manager</option>
-          <option>Host</option>
-          <option>Viewer</option>
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          style={{
+            padding: '10px 16px', backgroundColor: isDark ? '#161B22' : '#ffffff',
+            border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`, borderRadius: '8px',
+            color: isDark ? '#ffffff' : '#1f2937', fontSize: '0.875rem', cursor: 'pointer', minWidth: '150px'
+          }}
+        >
+          <option value="all">All Roles</option>
+          <option value="manager">Manager</option>
+          <option value="host">Host</option>
+          <option value="viewer">Viewer</option>
         </select>
       </div>
 
-      {/* Table Container */}
-      <div style={{
-        borderRadius: '12px',
-        border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
-        backgroundColor: 'transparent',
-        overflow: 'hidden'
-      }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', fontSize: '0.875rem', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr style={{
-                borderBottom: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
-                backgroundColor: isDark ? '#101A1C' : '#f9fafb'
-              }}>
-                {['Name', 'Email', 'Last Active', 'Status', ''].map((h) => (
-                  <th key={h} style={{
-                    textAlign: 'left',
-                    padding: '16px 24px',
-                    fontWeight: 500,
-                    color: isDark ? '#ffffff' : '#4b5563' // Bright header text as per design
-                  }}>
-                    {h}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {staff.map((member) => (
-                <tr
-                  key={member.id}
-                  style={{
-                    borderBottom: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
-                    transition: 'background-color 0.2s',
-                    cursor: 'pointer'
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.backgroundColor = isDark ? '#161B22' : '#f9fafb'}
-                  onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                >
-                  <td style={{ padding: '16px 24px', color: isDark ? '#e6edf3' : '#1f2937' }}>
-                    {member.name}
-                  </td>
-                  <td style={{ padding: '16px 24px', color: isDark ? '#e6edf3' : '#4b5563' }}>
-                    {member.email}
-                  </td>
-                  <td style={{ padding: '16px 24px', color: isDark ? '#e6edf3' : '#4b5563' }}>
-                    {member.lastActive}
-                  </td>
-                  <td style={{ padding: '16px 24px' }}>
-                    <StatusBadge status={member.status} />
-                  </td>
-                  <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                    <button style={{
-                      background: 'none',
-                      border: 'none',
-                      color: isDark ? '#8b949e' : '#6b7280',
-                      cursor: 'pointer',
-                      padding: '4px'
-                    }}>
-                      <MoreVertical size={16} />
-                    </button>
-                  </td>
+      {filtered.length === 0 ? (
+        <p style={{ color: isDark ? '#8b949e' : '#6b7280', textAlign: 'center', padding: '32px 0' }}>
+          {staff.length === 0 ? 'No staff members yet. Invite your team from the Setup Wizard.' : 'No staff match your search.'}
+        </p>
+      ) : (
+        <div style={{ borderRadius: '12px', border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`, overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', fontSize: '0.875rem', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`, backgroundColor: isDark ? '#101A1C' : '#f9fafb' }}>
+                  {['Name', 'Email', 'Role', ''].map((h) => (
+                    <th key={h} style={{ textAlign: 'left', padding: '16px 24px', fontWeight: 500, color: isDark ? '#ffffff' : '#4b5563' }}>{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filtered.map((member) => (
+                  <tr key={member.id}
+                    style={{ borderBottom: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`, transition: 'background-color 0.2s', cursor: 'pointer' }}
+                    onMouseOver={(e) => e.currentTarget.style.backgroundColor = isDark ? '#161B22' : '#f9fafb'}
+                    onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                  >
+                    <td style={{ padding: '16px 24px', color: isDark ? '#e6edf3' : '#1f2937' }}>{member.name}</td>
+                    <td style={{ padding: '16px 24px', color: isDark ? '#e6edf3' : '#4b5563' }}>{member.email}</td>
+                    <td style={{ padding: '16px 24px' }}><StatusBadge status={member.role as any} /></td>
+                    <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                      <button
+                        onClick={() => handleRemove(member.id)}
+                        title="Remove staff member"
+                        style={{ background: 'none', border: 'none', color: isDark ? '#8b949e' : '#6b7280', cursor: 'pointer', padding: '4px' }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

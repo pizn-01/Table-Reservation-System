@@ -5,6 +5,7 @@ import UserStepDateTime from '../user-reservation/UserStepDateTime'
 import UserStepTableSelect from '../user-reservation/UserStepTableSelect'
 import UserStepContactInfo from '../user-reservation/UserStepContactInfo'
 import UserStepConfirmReview from '../user-reservation/UserStepConfirmReview'
+import api, { ApiError } from '../../lib/api'
 
 export interface ReservationData {
   date: string
@@ -44,16 +45,60 @@ export default function BookATableWizard() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [data, setData] = useState<ReservationData>(initialData)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+
+  // TODO: Make this configurable via URL param or env variable
+  const restaurantSlug = 'default'
 
   const updateData = (updates: Partial<ReservationData>) => {
     setData((prev) => ({ ...prev, ...updates }))
   }
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1)
     } else {
-      navigate('/public-booking-confirmed', { state: data })
+      // Final step — submit reservation to backend
+      setIsSubmitting(true)
+      setSubmitError('')
+
+      try {
+        // Parse date from DD/MM/YYYY to YYYY-MM-DD
+        const dateParts = data.date.split('/')
+        const reservationDate = dateParts.length === 3
+          ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+          : data.date
+
+        // Calculate end time (90 min default duration)
+        const [hours, mins] = data.time.split(':').map(Number)
+        const endDate = new Date(2000, 0, 1, hours, mins + 90)
+        const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`
+
+        const payload = {
+          tableId: data.tableId || undefined,
+          reservationDate,
+          startTime: data.time,
+          endTime,
+          partySize: data.guests,
+          guestFirstName: data.firstName,
+          guestLastName: data.lastName || undefined,
+          guestEmail: data.email,
+          guestPhone: data.phone || undefined,
+          specialRequests: data.specialRequest || undefined,
+        }
+
+        const result = await api.post(`/public/${restaurantSlug}/reserve`, payload, { skipAuth: true })
+        navigate('/public-booking-confirmed', { state: { ...data, reservationId: result.data } })
+      } catch (err) {
+        if (err instanceof ApiError) {
+          setSubmitError(err.message)
+        } else {
+          setSubmitError('Failed to confirm reservation. Please try again.')
+        }
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -124,6 +169,19 @@ export default function BookATableWizard() {
             padding: '40px',
             boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2)'
           }}>
+            {submitError && (
+              <div style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                borderRadius: '8px',
+                padding: '10px 16px',
+                marginBottom: '16px',
+                color: '#ef4444',
+                fontSize: '0.8125rem',
+              }}>
+                {submitError}
+              </div>
+            )}
             {renderStep()}
           </div>
         </div>
@@ -166,19 +224,21 @@ export default function BookATableWizard() {
 
             <button
               onClick={nextStep}
+              disabled={isSubmitting}
               style={{
                 padding: '10px 24px',
                 borderRadius: '8px',
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 border: 'none',
-                cursor: 'pointer',
-                backgroundColor: '#C99C63',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                backgroundColor: isSubmitting ? '#8b7650' : '#C99C63',
                 color: '#ffffff',
-                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.2)'
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.2)',
+                opacity: isSubmitting ? 0.7 : 1,
               }}
             >
-              {getNextLabel()}
+              {isSubmitting ? 'Submitting...' : getNextLabel()}
             </button>
           </div>
         </div>

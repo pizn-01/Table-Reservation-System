@@ -1,10 +1,10 @@
 import { Routes, Route } from 'react-router-dom'
+import ProtectedRoute from './components/ProtectedRoute'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import ReservationWizard from './pages/reservation/ReservationWizard'
 import BookingConfirmed from './pages/reservation/BookingConfirmed'
-import CustomerDashboard from './pages/CustomerDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import SetupWizard from './pages/setup/SetupWizard'
 import StaffLogin from './pages/StaffLogin'
@@ -21,24 +21,28 @@ import PublicBookingConfirmed from './pages/public-reservation/PublicBookingConf
 function App() {
   return (
     <Routes>
+      {/* ─── Public Routes ─────────────────────────── */}
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
-      <Route path="/reserve" element={<ReservationWizard />} />
-      <Route path="/booking-confirmed" element={<BookingConfirmed />} />
-      <Route path="/dashboard" element={<CustomerDashboard />} />
-      <Route path="/admin" element={<AdminDashboard />} />
-      <Route path="/setup" element={<SetupWizard />} />
       <Route path="/staff-login" element={<StaffLogin />} />
-      <Route path="/staff/tables" element={<StaffTableManagement />} />
-      <Route path="/logged-in-tab-res" element={<LoggedInTabRes />} />
-      <Route path="/welcome" element={<Welcome />} />
-      <Route path="/premium-reserve" element={<PremiumReservation />} />
-      <Route path="/premium-booking-confirmed" element={<PremiumBookingConfirmed />} />
-      <Route path="/user-reserve" element={<UserReservationWizard />} />
-      <Route path="/user-booking-confirmed" element={<UserBookingConfirmed />} />
       <Route path="/book-a-table" element={<BookATableWizard />} />
       <Route path="/public-booking-confirmed" element={<PublicBookingConfirmed />} />
+
+      {/* ─── Protected Routes (Auth Required) ──────── */}
+      <Route path="/welcome" element={<ProtectedRoute><Welcome /></ProtectedRoute>} />
+      <Route path="/setup" element={<ProtectedRoute><SetupWizard /></ProtectedRoute>} />
+      <Route path="/reserve" element={<ProtectedRoute><ReservationWizard /></ProtectedRoute>} />
+      <Route path="/booking-confirmed" element={<ProtectedRoute><BookingConfirmed /></ProtectedRoute>} />
+      <Route path="/premium-reserve" element={<ProtectedRoute><PremiumReservation /></ProtectedRoute>} />
+      <Route path="/premium-booking-confirmed" element={<ProtectedRoute><PremiumBookingConfirmed /></ProtectedRoute>} />
+      <Route path="/user-reserve" element={<ProtectedRoute><UserReservationWizard /></ProtectedRoute>} />
+      <Route path="/user-booking-confirmed" element={<ProtectedRoute><UserBookingConfirmed /></ProtectedRoute>} />
+      <Route path="/logged-in-tab-res" element={<ProtectedRoute><LoggedInTabRes /></ProtectedRoute>} />
+
+      {/* ─── Admin/Staff Routes (Role-Protected) ───── */}
+      <Route path="/admin" element={<ProtectedRoute requiredRoles={['admin', 'manager']}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/staff/tables" element={<ProtectedRoute requiredRoles={['admin', 'manager', 'host']}><StaffTableManagement /></ProtectedRoute>} />
     </Routes>
   )
 }

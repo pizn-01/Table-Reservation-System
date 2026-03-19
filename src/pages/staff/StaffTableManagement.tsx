@@ -1,84 +1,56 @@
-import { useState } from 'react'
-import { Users, MapPin, Coffee, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Users, MapPin, Settings, LogOut, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import api, { ApiError } from '../../lib/api'
+
+// ─── Types ──────────────────────────────────────────────
 
 interface TableData {
-  id: number
-  name: string
+  id: string
+  table_number: string
   capacity: number
-  location: string
-  status: 'available' | 'seated' | 'confirmed' | 'arriving'
+  area_name?: string
+  table_type?: string
+  status: string
 }
 
-const calendarBookings = [
-  // Window Section (Table 1-4)
-  { id: 1, tableId: '1', name: 'Uston & Co', guests: 8, start: '13:00', end: '14:00', status: 'confirmed' },
-  { id: 2, tableId: '1', name: 'Mike Porter', guests: 6, start: '15:00', end: '16:00', status: 'confirmed' },
-  { id: 3, tableId: '1', name: 'Beth Rose', guests: 6, start: '16:00', end: '17:00', status: 'confirmed' },
-  { id: 4, tableId: '3', name: 'Amy Dogan', guests: 4, start: '13:00', end: '14:00', status: 'seated' },
-  { id: 5, tableId: '3', name: 'Susan Reach', guests: 4, start: '15:00', end: '16:00', status: 'confirmed' },
+interface AreaGroup {
+  title: string
+  tables: TableData[]
+}
 
-  // Main Dining Section (Table 5-7)
-  { id: 6, tableId: '5', name: 'Amy Dogan', guests: 4, start: '13:45', end: '14:45', status: 'confirmed' },
-  { id: 7, tableId: '5', name: 'Beth Reach', guests: 4, start: '16:15', end: '17:15', status: 'seated' },
-  { id: 8, tableId: '6', name: 'Susan Reach', guests: 4, start: '15:45', end: '16:45', status: 'confirmed' },
-  { id: 9, tableId: '7', name: 'Jon Lane', guests: 4, start: '14:15', end: '15:15', status: 'confirmed' },
-  { id: 10, tableId: '7', name: 'Maggie Slate', guests: 4, start: '15:45', end: '16:45', status: 'seated' },
-  { id: 11, tableId: '7', name: 'Tonny Timber', guests: 8, start: '17:15', end: '18:15', status: 'confirmed' },
+interface CalendarBooking {
+  id: string
+  tableId: string
+  guestName: string
+  partySize: number
+  startTime: string   // "HH:MM"
+  endTime: string     // "HH:MM"
+  status: string
+}
 
-  // Outdoor Section (Table 8-12)
-  { id: 12, tableId: '9', name: 'Jon Lane', guests: 4, start: '13:45', end: '14:45', status: 'confirmed' },
-  { id: 13, tableId: '9', name: 'Maggie Slate', guests: 4, start: '15:45', end: '16:45', status: 'seated' },
-  { id: 14, tableId: '9', name: 'Tonny Timber', guests: 8, start: '17:15', end: '18:15', status: 'confirmed' },
-  { id: 15, tableId: '10', name: 'Maggie Slate', guests: 4, start: '14:45', end: '15:45', status: 'confirmed' },
-  { id: 16, tableId: '10', name: 'Tonny Timber', guests: 8, start: '16:45', end: '17:45', status: 'seated' },
-  { id: 17, tableId: '10', name: 'Tonny Timber', guests: 8, start: '18:15', end: '19:15', status: 'confirmed' },
-  { id: 18, tableId: '11', name: 'Amy Dogan', guests: 4, start: '13:00', end: '14:00', status: 'confirmed' },
-  { id: 19, tableId: '11', name: 'Susan Reach', guests: 4, start: '15:45', end: '16:45', status: 'confirmed' },
-  { id: 20, tableId: '12', name: 'Tonny Timber', guests: 8, start: '17:15', end: '18:15', status: 'seated' }
-]
+// ─── Helpers ────────────────────────────────────────────
 
-const calendarGridMetrics = [14, 16, 18, 18, 22, 22, 20, 20, 8, 4, 4, 4, 0, 0, 0, 0, 16]
+const dateToYMD = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
-const dayViewTables: TableData[] = [
-  { id: 1, name: 'Table 1', capacity: 2, location: 'By the window', status: 'available' },
-  { id: 2, name: 'Table 2', capacity: 2, location: 'Center area', status: 'available' },
-  { id: 3, name: 'Table 3', capacity: 4, location: 'Private corner', status: 'available' },
-  { id: 4, name: 'Table 4', capacity: 2, location: 'Center area', status: 'available' },
-  { id: 5, name: 'Table 5', capacity: 4, location: 'Private corner', status: 'available' },
-  { id: 6, name: 'Table 6', capacity: 2, location: 'Center area', status: 'available' },
-  { id: 7, name: 'Table 7', capacity: 4, location: 'Private corner', status: 'available' },
-  { id: 8, name: 'Table 8', capacity: 2, location: 'Center area', status: 'available' },
-]
+const dayLabels = (base: Date): { label: string; date: string }[] => {
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  return Array.from({ length: 5 }, (_, i) => {
+    const d = new Date(base)
+    d.setDate(base.getDate() + i)
+    return {
+      label: i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : days[d.getDay()],
+      date: dateToYMD(d),
+    }
+  })
+}
 
-const tableViewSections = [
-  {
-    title: 'Window',
-    tables: [
-      { id: '1', name: 'Table 1', capacity: 8, status: 'confirmed' },
-      { id: '2', name: 'Table 2', capacity: 2, status: 'available' },
-      { id: '3', name: 'Table 3', capacity: 4, status: 'seated' },
-      { id: '4', name: 'Table 4', capacity: 4, status: 'available' },
-    ]
-  },
-  {
-    title: 'Main Dining',
-    tables: [
-      { id: '5', name: 'Table 5', capacity: 2, status: 'confirmed' },
-      { id: '6', name: 'Table 6', capacity: 6, status: 'confirmed' },
-      { id: '7', name: 'Table 7', capacity: 4, status: 'confirmed' },
-      { id: '8', name: 'Table 8', capacity: 2, status: 'available' },
-    ]
-  },
-  {
-    title: 'Outdoor',
-    tables: [
-      { id: '9', name: 'Table 9', capacity: 4, status: 'confirmed' },
-      { id: '10', name: 'Table 10', capacity: 4, status: 'confirmed' },
-      { id: '11', name: 'Table 11', capacity: 4, status: 'confirmed' },
-      { id: '12', name: 'Table 12', capacity: 2, status: 'confirmed' },
-    ]
-  }
-]
+const formatLongDate = (ymd: string) => {
+  const d = new Date(ymd + 'T00:00:00')
+  return d.toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+// ─── Calendar Table Icon ───────────────────────────────
 
 const CustomTableIcon = () => (
   <svg width="24" height="15" viewBox="0 0 30 19" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -96,9 +68,119 @@ const CustomTableIcon = () => (
   </svg>
 )
 
+// ─── Component ──────────────────────────────────────────
+
 export default function StaffTableManagement() {
+  const { restaurant, logout } = useAuth()
+  const orgId = restaurant?.id
+
   const [activeTab, setActiveTab] = useState('Day View')
-  const [activeDay, setActiveDay] = useState('Today')
+  const today = new Date()
+  const days = useMemo(() => dayLabels(today), [])
+  const [selectedDate, setSelectedDate] = useState(days[0].date)
+
+  // ── Data State ─────────────────────────────────────────
+  const [tables, setTables] = useState<TableData[]>([])
+  const [bookings, setBookings] = useState<CalendarBooking[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  // ── Fetch Tables ───────────────────────────────────────
+  useEffect(() => {
+    if (!orgId) return
+    const fetchTables = async () => {
+      try {
+        const res = await api.get<TableData[]>(`/organizations/${orgId}/tables`)
+        setTables(res.data || [])
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : 'Failed to load tables.')
+      }
+    }
+    fetchTables()
+  }, [orgId])
+
+  // ── Fetch Reservations (per date) ─────────────────────
+  useEffect(() => {
+    if (!orgId) return
+    const fetchBookings = async () => {
+      setIsLoading(true)
+      setError('')
+      try {
+        // Try /calendar first; fall back to list
+        let calendarData: CalendarBooking[] = []
+        try {
+          const calRes = await api.get<any>(`/organizations/${orgId}/reservations/calendar?date=${selectedDate}`)
+          if (Array.isArray(calRes.data)) {
+            calendarData = calRes.data.map((b: any) => ({
+              id: b.id,
+              tableId: String(b.table_id || b.tableId || ''),
+              guestName: [b.guest_first_name, b.guest_last_name].filter(Boolean).join(' ') || b.guestName || 'Guest',
+              partySize: b.party_size || b.partySize || 0,
+              startTime: (b.start_time || b.startTime || '').slice(0, 5),
+              endTime: (b.end_time || b.endTime || '').slice(0, 5),
+              status: b.status || 'confirmed',
+            }))
+          }
+        } catch {
+          // calendar endpoint might not exist; fall back to list
+          const listRes = await api.get<any[]>(`/organizations/${orgId}/reservations?date=${selectedDate}`)
+          calendarData = (listRes.data || []).map((b: any) => ({
+            id: b.id,
+            tableId: String(b.table_id || b.tableId || ''),
+            guestName: [b.guest_first_name, b.guest_last_name].filter(Boolean).join(' ') || 'Guest',
+            partySize: b.party_size || b.partySize || 0,
+            startTime: (b.start_time || b.startTime || '').slice(0, 5),
+            endTime: (b.end_time || b.endTime || '').slice(0, 5),
+            status: b.status || 'confirmed',
+          }))
+        }
+        setBookings(calendarData)
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : 'Failed to load reservations.')
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchBookings()
+  }, [orgId, selectedDate])
+
+  // ── Derived Data ───────────────────────────────────────
+
+  // Group tables by area_name for Table View / Calendar View
+  const areaGroups: AreaGroup[] = useMemo(() => {
+    const map = new Map<string, TableData[]>()
+    tables.forEach(t => {
+      const area = t.area_name || 'Uncategorized'
+      if (!map.has(area)) map.set(area, [])
+      map.get(area)!.push(t)
+    })
+    return Array.from(map.entries()).map(([title, tables]) => ({ title, tables }))
+  }, [tables])
+
+  // Stats computed from real data
+  const stats = useMemo(() => {
+    const arriving = bookings.filter(b => b.status === 'arriving' || b.status === 'confirmed').length
+    const seated = bookings.filter(b => b.status === 'seated').length
+    const available = tables.filter(t => {
+      // A table is "available now" if no booking for it overlaps the current time
+      const now = new Date()
+      const nowMin = now.getHours() * 60 + now.getMinutes()
+      return !bookings.some(b => {
+        if (String(b.tableId) !== String(t.id) && String(b.tableId) !== t.table_number) return false
+        const [sh, sm] = b.startTime.split(':').map(Number)
+        const [eh, em] = b.endTime.split(':').map(Number)
+        return nowMin >= (sh * 60 + sm) && nowMin < (eh * 60 + em)
+      })
+    }).length
+    return [
+      { label: 'Bookings', value: bookings.length },
+      { label: 'Seated', value: seated },
+      { label: 'Upcoming', value: arriving },
+      { label: 'Available Now', value: available },
+    ]
+  }, [bookings, tables])
+
+  // ── Helpers ────────────────────────────────────────────
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -106,6 +188,8 @@ export default function StaffTableManagement() {
       case 'seated': return '#E05D5D'
       case 'confirmed': return '#5D8FE0'
       case 'available': return '#5EEA7A'
+      case 'completed': return '#8b949e'
+      case 'no_show': return '#d73a49'
       default: return '#8b949e'
     }
   }
@@ -120,8 +204,38 @@ export default function StaffTableManagement() {
     }
   }
 
+  const getTableCurrentStatus = (table: TableData): string => {
+    const now = new Date()
+    const nowMin = now.getHours() * 60 + now.getMinutes()
+    const booking = bookings.find(b => {
+      if (String(b.tableId) !== String(table.id) && String(b.tableId) !== table.table_number) return false
+      const [sh, sm] = b.startTime.split(':').map(Number)
+      const [eh, em] = b.endTime.split(':').map(Number)
+      return nowMin >= (sh * 60 + sm) && nowMin < (eh * 60 + em)
+    })
+    return booking ? booking.status : 'available'
+  }
+
+  // ── Calendar date navigation ───────────────────────────
+
+  const shiftDate = (direction: number) => {
+    const d = new Date(selectedDate + 'T00:00:00')
+    d.setDate(d.getDate() + direction)
+    setSelectedDate(dateToYMD(d))
+  }
+
+  // ── Loading State ──────────────────────────────────────
+
+  if (isLoading && tables.length === 0) {
+    return (
+      <div style={{ minHeight: '100vh', backgroundColor: '#F6F7F9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Loader2 size={32} style={{ color: '#C99C63', animation: 'spin 1s linear infinite' }} />
+      </div>
+    )
+  }
+
   return (
-    <div 
+    <div
       className="res-staff-container"
       style={{
       minHeight: '100vh',
@@ -132,26 +246,21 @@ export default function StaffTableManagement() {
     }}>
       {/* Header Logo */}
       <div className="res-staff-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>Logo</h1>
+        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>{restaurant?.name || 'Restaurant'}</h1>
         <div style={{ display: 'flex', gap: '16px' }}>
           <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><Settings size={20} /></button>
-          <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><LogOut size={20} /></button>
+          <button onClick={logout} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><LogOut size={20} /></button>
         </div>
       </div>
 
-      {/* Stats row */}
+      {/* Stats row — computed from real data */}
       <div className="res-staff-stats-row" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(4, 1fr)',
         gap: '20px',
         marginBottom: '40px'
       }}>
-        {[
-          { label: 'Arriving', value: 3 },
-          { label: 'Seated', value: 3 },
-          { label: 'Confirmed', value: 2 },
-          { label: 'Available', value: 4 }
-        ].map((stat, idx) => (
+        {stats.map((stat, idx) => (
           <div key={idx} style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
@@ -181,6 +290,13 @@ export default function StaffTableManagement() {
         ))}
       </div>
 
+      {/* Error Banner */}
+      {error && (
+        <div style={{ backgroundColor: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '8px', padding: '10px 16px', marginBottom: '16px', color: '#ef4444', fontSize: '0.8125rem' }}>
+          {error}
+        </div>
+      )}
+
       {/* Content area */}
       <div className="res-staff-content" style={{
         backgroundColor: '#ffffff',
@@ -197,8 +313,8 @@ export default function StaffTableManagement() {
           borderBottom: '1px solid #e5e7eb'
         }}>
           {['Day View', 'Table View', 'Calendar View'].map((tab) => (
-            <button 
-              key={tab} 
+            <button
+              key={tab}
               onClick={() => setActiveTab(tab)}
               style={{
                 background: 'none',
@@ -227,9 +343,9 @@ export default function StaffTableManagement() {
           ))}
         </div>
 
+        {/* ─── Day View ─────────────────────────────────── */}
         {activeTab === 'Day View' && (
           <>
-            {/* Detailed Header */}
             <div className="res-staff-day-header" style={{
               padding: '32px',
               display: 'flex',
@@ -237,59 +353,70 @@ export default function StaffTableManagement() {
               alignItems: 'center'
             }}>
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 8px 0', color: '#111827' }}>Thursday, February 17, 2026</h3>
-                <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: 0 }}>at 12:00</p>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, margin: '0 0 8px 0', color: '#111827' }}>{formatLongDate(selectedDate)}</h3>
+                <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: 0 }}>
+                  {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                </p>
               </div>
-              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>8 tables available</p>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{tables.length} tables total</p>
             </div>
 
-            {/* Table Grid (Day View) */}
-            <div className="res-staff-day-grid" style={{
-              padding: '0 32px 32px 32px',
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '20px'
-            }}>
-              {dayViewTables.map(table => (
-                <div key={table.id} style={{
-                  backgroundColor: '#ffffff',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '12px',
-                  padding: '24px',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '16px'
-                }}>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    backgroundColor: getStatusColor(table.status),
-                    borderRadius: '50%',
-                    marginTop: '6px'
-                  }} />
-                  <div style={{ flex: 1 }}>
-                    <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 12px 0', color: '#111827' }}>{table.name}</h4>
-                    <div style={{ display: 'flex', gap: '24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280' }}>
-                        <Users size={16} />
-                        <span style={{ fontSize: '0.8125rem' }}>Capacity: {table.capacity} seats</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280' }}>
-                        <MapPin size={16} />
-                        <span style={{ fontSize: '0.8125rem' }}>{table.location}</span>
+            {tables.length === 0 ? (
+              <p style={{ color: '#6b7280', textAlign: 'center', padding: '32px', fontSize: '0.875rem' }}>No tables configured. Add tables from the Setup Wizard.</p>
+            ) : (
+              <div className="res-staff-day-grid" style={{
+                padding: '0 32px 32px 32px',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '20px'
+              }}>
+                {tables.map(table => {
+                  const currentStatus = getTableCurrentStatus(table)
+                  return (
+                    <div key={table.id} style={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e5e7eb',
+                      borderRadius: '12px',
+                      padding: '24px',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '16px'
+                    }}>
+                      <div style={{
+                        width: '12px',
+                        height: '12px',
+                        backgroundColor: getStatusColor(currentStatus),
+                        borderRadius: '50%',
+                        marginTop: '6px'
+                      }} />
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 12px 0', color: '#111827' }}>Table {table.table_number}</h4>
+                        <div style={{ display: 'flex', gap: '24px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280' }}>
+                            <Users size={16} />
+                            <span style={{ fontSize: '0.8125rem' }}>Capacity: {table.capacity} seats</span>
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b7280' }}>
+                            <MapPin size={16} />
+                            <span style={{ fontSize: '0.8125rem' }}>{table.area_name || 'N/A'}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  )
+                })}
+              </div>
+            )}
           </>
         )}
 
+        {/* ─── Table View (Floor Map) ────────────────────── */}
         {activeTab === 'Table View' && (
           <div style={{ padding: '32px' }}>
-            {tableViewSections.map((section, sIdx) => (
-              <div key={section.title} style={{ marginBottom: sIdx === tableViewSections.length - 1 ? 0 : '60px' }}>
+            {areaGroups.length === 0 ? (
+              <p style={{ color: '#6b7280', textAlign: 'center', padding: '32px', fontSize: '0.875rem' }}>No tables found.</p>
+            ) : areaGroups.map((section, sIdx) => (
+              <div key={section.title} style={{ marginBottom: sIdx === areaGroups.length - 1 ? 0 : '60px' }}>
                 {/* Section Divider */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '40px' }}>
                   <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }} />
@@ -306,45 +433,21 @@ export default function StaffTableManagement() {
                   gap: '40px',
                   rowGap: '60px'
                 }}>
-                  {section.tables.map(table => (
-                    <div key={table.id} style={{ position: 'relative', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {/* Cross (Chairs) */}
-                      {/* Horizontal bar (always one) */}
-                      <div style={{
-                        position: 'absolute',
-                        width: '240px',
-                        height: '40px',
-                        backgroundColor: '#f3f4f6',
-                        border: '1px solid #e5e7eb',
-                        boxSizing: 'border-box',
-                        borderRadius: '8px'
-                      }} />
-                      
-                      {/* Vertical bars (one for standard, two for Main Dining) */}
-                      {section.title === 'Main Dining' ? (
-                        <>
-                          <div style={{
-                            position: 'absolute',
-                            width: '40px',
-                            height: '190px',
-                            backgroundColor: '#f3f4f6',
-                            border: '1px solid #e5e7eb',
-                            boxSizing: 'border-box',
-                            borderRadius: '8px',
-                            transform: 'translateX(-35px)'
-                          }} />
-                          <div style={{
-                            position: 'absolute',
-                            width: '40px',
-                            height: '190px',
-                            backgroundColor: '#f3f4f6',
-                            border: '1px solid #e5e7eb',
-                            boxSizing: 'border-box',
-                            borderRadius: '8px',
-                            transform: 'translateX(35px)'
-                          }} />
-                        </>
-                      ) : (
+                  {section.tables.map(table => {
+                    const currentStatus = getTableCurrentStatus(table)
+                    return (
+                      <div key={table.id} style={{ position: 'relative', height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {/* Cross (Chairs) — Horizontal */}
+                        <div style={{
+                          position: 'absolute',
+                          width: '240px',
+                          height: '40px',
+                          backgroundColor: '#f3f4f6',
+                          border: '1px solid #e5e7eb',
+                          boxSizing: 'border-box',
+                          borderRadius: '8px'
+                        }} />
+                        {/* Vertical */}
                         <div style={{
                           position: 'absolute',
                           width: '40px',
@@ -354,47 +457,47 @@ export default function StaffTableManagement() {
                           boxSizing: 'border-box',
                           borderRadius: '8px'
                         }} />
-                      )}
 
-                      {/* Main Table Card */}
-                      <div style={{
-                        position: 'relative',
-                        width: '135px',
-                        height: '100px',
-                        backgroundColor: '#ffffff',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '10px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        padding: '12px',
-                        zIndex: 1
-                      }}>
-                        {/* Status Badge */}
+                        {/* Main Table Card */}
                         <div style={{
-                          backgroundColor: getStatusBg(table.status),
-                          color: getStatusColor(table.status),
-                          fontSize: '0.6875rem',
-                          padding: '4px 12px',
-                          borderRadius: '100px',
-                          marginBottom: '8px',
-                          fontWeight: 600,
-                          textTransform: 'capitalize'
+                          position: 'relative',
+                          width: '135px',
+                          height: '100px',
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '10px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '12px',
+                          zIndex: 1
                         }}>
-                          {table.status}
+                          <div style={{
+                            backgroundColor: getStatusBg(currentStatus),
+                            color: getStatusColor(currentStatus),
+                            fontSize: '0.6875rem',
+                            padding: '4px 12px',
+                            borderRadius: '100px',
+                            marginBottom: '8px',
+                            fontWeight: 600,
+                            textTransform: 'capitalize'
+                          }}>
+                            {currentStatus}
+                          </div>
+                          <h5 style={{ fontSize: '1rem', fontWeight: 700, margin: '2px 0 4px 0', color: '#111827' }}>Table {table.table_number}</h5>
+                          <p style={{ fontSize: '0.8125rem', color: '#6b7280', margin: 0 }}>Capacity {table.capacity}</p>
                         </div>
-                        <h5 style={{ fontSize: '1rem', fontWeight: 700, margin: '2px 0 4px 0', color: '#111827' }}>{table.name}</h5>
-                        <p style={{ fontSize: '0.8125rem', color: '#6b7280', margin: 0 }}>Capacity {table.capacity}</p>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
             ))}
           </div>
         )}
 
+        {/* ─── Calendar View ─────────────────────────────── */}
         {activeTab === 'Calendar View' && (
           <div style={{ padding: '0' }}>
             {/* Day Selector Navigation */}
@@ -406,10 +509,10 @@ export default function StaffTableManagement() {
               borderBottom: '1px solid #e5e7eb'
             }}>
               <div className="res-staff-cal-days" style={{ display: 'flex', gap: '8px' }}>
-                {['Today', 'Tomorrow', 'Wednesday', 'Thursday', 'Friday'].map(day => (
+                {days.map(day => (
                   <button
-                    key={day}
-                    onClick={() => setActiveDay(day)}
+                    key={day.date}
+                    onClick={() => setSelectedDate(day.date)}
                     style={{
                       padding: '10px 24px',
                       borderRadius: '8px',
@@ -417,26 +520,26 @@ export default function StaffTableManagement() {
                       fontWeight: 600,
                       cursor: 'pointer',
                       border: 'none',
-                      backgroundColor: activeDay === day ? '#EAF4EC' : 'transparent',
-                      color: activeDay === day ? '#6B9E78' : '#6b7280',
+                      backgroundColor: selectedDate === day.date ? '#EAF4EC' : 'transparent',
+                      color: selectedDate === day.date ? '#6B9E78' : '#6b7280',
                       transition: 'all 0.2s'
                     }}
                   >
-                    {day}
+                    {day.label}
                   </button>
                 ))}
               </div>
-              <div style={{ 
-                backgroundColor: '#ffffff', 
+              <div style={{
+                backgroundColor: '#ffffff',
                 border: '1px solid #e5e7eb',
-                padding: '10px 20px', 
+                padding: '10px 20px',
                 borderRadius: '8px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px'
               }}>
                 <span style={{ color: '#6b7280', fontSize: '0.875rem', fontWeight: 500 }}>Bookings</span>
-                <span style={{ color: '#111827', fontSize: '1.25rem', fontWeight: 700 }}>27</span>
+                <span style={{ color: '#111827', fontSize: '1.25rem', fontWeight: 700 }}>{bookings.length}</span>
               </div>
             </div>
 
@@ -448,229 +551,215 @@ export default function StaffTableManagement() {
               gap: '32px',
               padding: '32px'
             }}>
-              <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronLeft size={24} /></button>
-              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>Tuesday, 24 February 2026</h3>
-              <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronRight size={24} /></button>
+              <button onClick={() => shiftDate(-1)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronLeft size={24} /></button>
+              <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>{formatLongDate(selectedDate)}</h3>
+              <button onClick={() => shiftDate(1)} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center' }}><ChevronRight size={24} /></button>
             </div>
 
-            {/* Timeline Grid */}
-            <div style={{ overflowX: 'auto', padding: '0 32px 32px 32px' }}>
-              <div style={{
-                minWidth: '1100px',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                backgroundColor: '#ffffff',
-                overflow: 'hidden'
-              }}>
-                {/* Time & Metrics Header Container */}
-                <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
-                  {/* Single Unified Sidebar Box Above Section Titles */}
-                  <div style={{ 
-                    width: '160px', 
-                    borderRight: '1px solid #e5e7eb',
-                    backgroundColor: '#f9fafb'
-                  }} />
+            {/* Loading overlay */}
+            {isLoading && (
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '32px' }}>
+                <Loader2 size={24} style={{ color: '#C99C63', animation: 'spin 1s linear infinite' }} />
+              </div>
+            )}
 
-                  {/* Right Side Header Area (Time + Metrics) */}
-                  <div style={{ flex: 1, backgroundColor: '#ffffff' }}>
-                    {/* Time Slots (Row 1) */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(17, 1fr)', position: 'relative' }}>
-
-                      {[13, 14, 15, 16, 17].map((hour, idx) => (
-                        <div key={hour} style={{ gridColumn: 'span 1', display: 'contents' }}>
-                          <div style={{ 
-                            textAlign: 'center',
-                            padding: '16px 0',
-                            fontSize: '0.9375rem',
-                            fontWeight: 700,
-                            color: '#111827',
-                            borderRight: '1px solid #e5e7eb'
-                          }}>
-                            {hour}
-                          </div>
-                          {idx < 4 && ['15', '30', '45'].map(min => (
-                            <div key={`${hour}-${min}`} style={{ 
+            {!isLoading && (
+              <div style={{ overflowX: 'auto', padding: '0 32px 32px 32px' }}>
+                <div style={{
+                  minWidth: '1100px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  backgroundColor: '#ffffff',
+                  overflow: 'hidden'
+                }}>
+                  {/* Time Header */}
+                  <div style={{ display: 'flex', borderBottom: '1px solid #e5e7eb' }}>
+                    <div style={{
+                      width: '160px',
+                      borderRight: '1px solid #e5e7eb',
+                      backgroundColor: '#f9fafb'
+                    }} />
+                    <div style={{ flex: 1, backgroundColor: '#ffffff' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(17, 1fr)', position: 'relative' }}>
+                        {[13, 14, 15, 16, 17].map((hour, idx) => (
+                          <div key={hour} style={{ gridColumn: 'span 1', display: 'contents' }}>
+                            <div style={{
                               textAlign: 'center',
                               padding: '16px 0',
-                              fontSize: '0.8125rem',
-                              color: '#6b7280',
+                              fontSize: '0.9375rem',
+                              fontWeight: 700,
+                              color: '#111827',
                               borderRight: '1px solid #e5e7eb'
                             }}>
-                              {min}
+                              {hour}
                             </div>
-                          ))}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Metrics (Row 2) */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(17, 1fr)', position: 'relative' }}>
-
-                      {calendarGridMetrics.map((val, idx) => (
-                        <div key={idx} style={{ 
-                          textAlign: 'center',
-                          padding: '12px 0',
-                          fontSize: '0.875rem',
-                          fontWeight: 600,
-                          color: '#4A9E6B',
-                          borderRight: '1px solid #e5e7eb',
-                          position: 'relative',
-                          zIndex: 1
-                        }}>
-                          {val}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Grid Content */}
-                {tableViewSections.map(section => (
-                  <div key={section.title}>
-                    <div style={{
-                      display: 'flex',
-                      backgroundColor: '#f9fafb',
-                      borderBottom: '1px solid #e5e7eb',
-                      minHeight: '52px'
-                    }}>
-                      <div style={{ 
-                        width: '160px', 
-                        borderRight: '1px solid #e5e7eb', 
-                        padding: '0 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        fontSize: '0.9375rem',
-                        fontWeight: 700,
-                        color: '#111827',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {section.title}
-                      </div>
-                      <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(17, 1fr)', position: 'relative' }}>
-
-                        {Array.from({ length: 16 }).map((_, i) => (
-                          <div key={i} style={{ 
-                            gridColumnStart: i + 2, 
-                            borderLeft: '1px solid rgba(229, 231, 235, 0.6)',
-                            height: '100%',
-                            position: 'relative',
-                            zIndex: 1
-                          }} />
+                            {idx < 4 && ['15', '30', '45'].map(min => (
+                              <div key={`${hour}-${min}`} style={{
+                                textAlign: 'center',
+                                padding: '16px 0',
+                                fontSize: '0.8125rem',
+                                color: '#6b7280',
+                                borderRight: '1px solid #e5e7eb'
+                              }}>
+                                {min}
+                              </div>
+                            ))}
+                          </div>
                         ))}
                       </div>
                     </div>
-                    {section.tables.map((table) => (
-                      <div key={table.id} style={{ 
-                        display: 'flex', 
-                        borderBottom: '1px solid #e5e7eb', 
-                        minHeight: '80px' 
+                  </div>
+
+                  {/* Grid Content — grouped by area */}
+                  {areaGroups.map(section => (
+                    <div key={section.title}>
+                      <div style={{
+                        display: 'flex',
+                        backgroundColor: '#f9fafb',
+                        borderBottom: '1px solid #e5e7eb',
+                        minHeight: '52px'
                       }}>
-                        {/* Two-column Sidebar (ID and Capacity) */}
-                        <div style={{ 
-                          width: '160px', 
-                          borderRight: '1px solid #e5e7eb', 
+                        <div style={{
+                          width: '160px',
+                          borderRight: '1px solid #e5e7eb',
+                          padding: '0 16px',
                           display: 'flex',
-                          backgroundColor: '#ffffff'
+                          alignItems: 'center',
+                          fontSize: '0.9375rem',
+                          fontWeight: 700,
+                          color: '#111827',
+                          whiteSpace: 'nowrap'
                         }}>
-                          <div style={{ 
-                            flex: 1, 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            fontSize: '0.875rem',
-                            fontWeight: 700,
-                            color: '#111827'
-                          }}>{table.id}</div>
-                          <div style={{ 
-                            flex: 1, 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center',
-                            fontSize: '0.8125rem',
-                            color: '#6b7280',
-                            fontWeight: 600
-                          }}>{table.capacity}</div>
+                          {section.title}
                         </div>
-
-                        {/* Booking Area */}
-                        <div style={{ flex: 1, position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(17, 1fr)' }}>
-
-                          {/* Vertical Column Divider Lines */}
+                        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(17, 1fr)', position: 'relative' }}>
                           {Array.from({ length: 16 }).map((_, i) => (
-                            <div key={i} style={{ 
-                              gridColumnStart: i + 2, 
+                            <div key={i} style={{
+                              gridColumnStart: i + 2,
                               borderLeft: '1px solid rgba(229, 231, 235, 0.6)',
                               height: '100%',
-                              pointerEvents: 'none',
+                              position: 'relative',
                               zIndex: 1
                             }} />
                           ))}
-                          
-                          {/* Bookings */}
-                          {calendarBookings
-                            .filter(booking => String(booking.tableId) === String(table.id))
-                            .map(booking => {
-                              const startTotalMin = parseInt(booking.start.split(':')[0]) * 60 + parseInt(booking.start.split(':')[1])
-                              const baseTotalMin = 13 * 60
-                              const startCol = ((startTotalMin - baseTotalMin) / 15) + 1
-                              const endTotalMin = parseInt(booking.end.split(':')[0]) * 60 + parseInt(booking.end.split(':')[1])
-                              const endCol = ((endTotalMin - baseTotalMin) / 15) + 1
-                              
-                              if (startCol < 1 || startCol > 17) return null;
-
-                              const isSeated = booking.status === 'seated'
-                              const mainColor = isSeated ? '#5EEA7A' : '#C99C63'
-                              const bgColor = isSeated ? 'rgba(94, 234, 122, 0.6)' : 'rgba(201, 156, 99, 0.6)'
-
-                              return (
-                                <div key={booking.id} style={{
-                                  position: 'absolute',
-                                  top: '12px',
-                                  bottom: '12px',
-                                  left: `calc(${(startCol - 1) * 5.88}% + 4px)`,
-                                  width: `calc(${(endCol - startCol) * 5.88}% - 8px)`,
-                                  backgroundColor: bgColor,
-                                  borderRadius: '6px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  padding: '0 8px',
-                                  gap: '10px',
-                                  zIndex: 10
-                                }}>
-                                  <div style={{
-                                    backgroundColor: '#ffffff',
-                                    borderRadius: '3px',
-                                    padding: '2px 6px',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 800,
-                                    color: mainColor,
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    minWidth: '22px'
-                                  }}>
-                                    {booking.guests}
-                                  </div>
-                                  <span style={{ 
-                                    fontSize: '0.8125rem', 
-                                    fontWeight: 600, 
-                                    whiteSpace: 'nowrap', 
-                                    overflow: 'hidden', 
-                                    textOverflow: 'ellipsis',
-                                    color: '#ffffff'
-                                  }}>
-                                    {booking.name}
-                                  </span>
-                                </div>
-                              )
-                            })}
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ))}
+
+                      {section.tables.map((table) => (
+                        <div key={table.id} style={{
+                          display: 'flex',
+                          borderBottom: '1px solid #e5e7eb',
+                          minHeight: '80px'
+                        }}>
+                          {/* Two-column Sidebar */}
+                          <div style={{
+                            width: '160px',
+                            borderRight: '1px solid #e5e7eb',
+                            display: 'flex',
+                            backgroundColor: '#ffffff'
+                          }}>
+                            <div style={{
+                              flex: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.875rem',
+                              fontWeight: 700,
+                              color: '#111827'
+                            }}>{table.table_number}</div>
+                            <div style={{
+                              flex: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.8125rem',
+                              color: '#6b7280',
+                              fontWeight: 600
+                            }}>{table.capacity}</div>
+                          </div>
+
+                          {/* Booking Area */}
+                          <div style={{ flex: 1, position: 'relative', display: 'grid', gridTemplateColumns: 'repeat(17, 1fr)' }}>
+                            {/* Vertical Column Lines */}
+                            {Array.from({ length: 16 }).map((_, i) => (
+                              <div key={i} style={{
+                                gridColumnStart: i + 2,
+                                borderLeft: '1px solid rgba(229, 231, 235, 0.6)',
+                                height: '100%',
+                                pointerEvents: 'none',
+                                zIndex: 1
+                              }} />
+                            ))}
+
+                            {/* Real Bookings */}
+                            {bookings
+                              .filter(b => String(b.tableId) === String(table.id) || String(b.tableId) === table.table_number)
+                              .map(booking => {
+                                const [sh, sm] = booking.startTime.split(':').map(Number)
+                                const [eh, em] = booking.endTime.split(':').map(Number)
+                                if (isNaN(sh) || isNaN(sm)) return null
+                                const startTotalMin = sh * 60 + sm
+                                const endTotalMin = eh * 60 + em
+                                const baseTotalMin = 13 * 60
+                                const startCol = (startTotalMin - baseTotalMin) / 15 + 1
+                                const endCol = (endTotalMin - baseTotalMin) / 15 + 1
+
+                                if (startCol < 1 || startCol > 17) return null
+
+                                const isSeated = booking.status === 'seated'
+                                const mainColor = isSeated ? '#5EEA7A' : '#C99C63'
+                                const bgColor = isSeated ? 'rgba(94, 234, 122, 0.6)' : 'rgba(201, 156, 99, 0.6)'
+
+                                return (
+                                  <div key={booking.id} style={{
+                                    position: 'absolute',
+                                    top: '12px',
+                                    bottom: '12px',
+                                    left: `calc(${(startCol - 1) * 5.88}% + 4px)`,
+                                    width: `calc(${(endCol - startCol) * 5.88}% - 8px)`,
+                                    backgroundColor: bgColor,
+                                    borderRadius: '6px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '0 8px',
+                                    gap: '10px',
+                                    zIndex: 10
+                                  }}>
+                                    <div style={{
+                                      backgroundColor: '#ffffff',
+                                      borderRadius: '3px',
+                                      padding: '2px 6px',
+                                      fontSize: '0.75rem',
+                                      fontWeight: 800,
+                                      color: mainColor,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center',
+                                      minWidth: '22px'
+                                    }}>
+                                      {booking.partySize}
+                                    </div>
+                                    <span style={{
+                                      fontSize: '0.8125rem',
+                                      fontWeight: 600,
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      color: '#ffffff'
+                                    }}>
+                                      {booking.guestName}
+                                    </span>
+                                  </div>
+                                )
+                              })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

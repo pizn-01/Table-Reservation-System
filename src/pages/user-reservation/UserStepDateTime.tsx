@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, AlertCircle, Clock } from 'lucide-react'
+import { useAuth } from '../../context/AuthContext'
+import api from '../../lib/api'
 import type { ReservationData } from './UserReservationWizard'
 
 interface UserStepDateTimeProps {
@@ -13,12 +15,46 @@ const TIME_SLOTS = [
 ]
 
 export default function UserStepDateTime({ data, updateData }: UserStepDateTimeProps) {
+  const { restaurant } = useAuth()
+  const orgId = restaurant?.id
   const [showWaitingList, setShowWaitingList] = useState(false)
-  const fullyBooked = false
-  const conflictSlots = ['20:30']
+  const [conflictSlots, setConflictSlots] = useState<string[]>([])
   const [hoveredDisabled, setHoveredDisabled] = useState<string | null>(null)
 
   const presets = [2, 4, 6, 8]
+
+  // Fetch availability when date or guest count changes
+  useEffect(() => {
+    if (!orgId || !data.date) return
+    const fetchConflicts = async () => {
+      try {
+        const dateParts = data.date.split('/')
+        const isoDate = dateParts.length === 3 ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : data.date
+
+        const conflicted: string[] = []
+        await Promise.all(
+          TIME_SLOTS.map(async (slot) => {
+            try {
+              const avail = await api.get<any[]>(
+                `/organizations/${orgId}/tables/availability?date=${isoDate}&time=${slot}&partySize=${data.guests}`
+              )
+              if (avail.data && avail.data.length === 0) {
+                conflicted.push(slot)
+              }
+            } catch {
+              // Don't block slot on API failure
+            }
+          })
+        )
+        setConflictSlots(conflicted)
+      } catch {
+        setConflictSlots([])
+      }
+    }
+    fetchConflicts()
+  }, [orgId, data.date, data.guests])
+
+  const fullyBooked = conflictSlots.length === TIME_SLOTS.length
 
   return (
     <div>
@@ -69,10 +105,10 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
             type="text"
             value={data.date}
             onChange={(e) => updateData({ date: e.target.value })}
-            style={{ 
-              padding: '12px 16px', 
-              paddingRight: '40px', 
-              width: '100%', 
+            style={{
+              padding: '12px 16px',
+              paddingRight: '40px',
+              width: '100%',
               boxSizing: 'border-box',
               backgroundColor: 'transparent',
               border: '1px solid #30363d',
@@ -167,7 +203,7 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
                     whiteSpace: 'nowrap',
                     animation: 'fadeIn 0.2s ease-in-out'
                   }}>
-                    This time slot has just been booked by another guest.
+                    No tables available for {data.guests} guests at this time.
                   </div>
                 )}
               </div>
@@ -186,7 +222,7 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px', margin: '16px 0' }}>
             <button
               onClick={() => updateData({ guests: Math.max(1, data.guests - 1) })}
@@ -209,7 +245,7 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
             >
               −
             </button>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '80px' }}>
               <span style={{
                 color: '#ffffff',

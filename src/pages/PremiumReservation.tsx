@@ -1,27 +1,55 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, Info, Minus, Plus, ChefHat, Users, MapPin, Lock, Pencil, Clock, User, Mail, Phone } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import api, { ApiError } from '../lib/api'
 
 export default function PremiumReservation() {
   const navigate = useNavigate()
+  const { restaurant } = useAuth()
+  const orgId = restaurant?.id
   const [step, setStep] = useState(1);
   const [guests, setGuests] = useState(2)
   const [selectedTable, setSelectedTable] = useState<number | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
+  const [contactInfo, setContactInfo] = useState({ firstName: '', lastName: '', email: '', phone: '', specialRequest: '' })
+  const [dateVal, setDateVal] = useState('18/02/2026')
 
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [hoveredSlot, setHoveredSlot] = useState<string | null>(null)
-  const timeSlots = [
-    { time: '17:00', status: 'available' },
-    { time: '17:30', status: 'booked' },
-    { time: '18:00', status: 'available' },
-    { time: '18:30', status: 'available' },
-    { time: '19:00', status: 'available' },
-    { time: '19:30', status: 'available' },
-    { time: '20:00', status: 'available' },
-    { time: '20:30', status: 'available' },
-    { time: '21:00', status: 'available' },
-    { time: '21:30', status: 'available' },
-  ]
+  const [bookedSlots, setBookedSlots] = useState<string[]>([])
+
+  const SLOT_TIMES = ['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30']
+
+  // Fetch availability when date or guest count changes
+  useEffect(() => {
+    if (!orgId || !dateVal) return
+    const fetchAvailability = async () => {
+      try {
+        const dateParts = dateVal.split('/')
+        const isoDate = dateParts.length === 3 ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : dateVal
+        const conflicted: string[] = []
+        await Promise.all(
+          SLOT_TIMES.map(async (slot) => {
+            try {
+              const avail = await api.get<any[]>(
+                `/organizations/${orgId}/tables/availability?date=${isoDate}&time=${slot}&partySize=${guests}`
+              )
+              if (avail.data && avail.data.length === 0) conflicted.push(slot)
+            } catch { /* don't block */ }
+          })
+        )
+        setBookedSlots(conflicted)
+      } catch { setBookedSlots([]) }
+    }
+    fetchAvailability()
+  }, [orgId, dateVal, guests])
+
+  const timeSlots = SLOT_TIMES.map(t => ({
+    time: t,
+    status: bookedSlots.includes(t) ? 'booked' as const : 'available' as const,
+  }))
 
   const predefinedGuests = [2, 4, 6, 8]
 
@@ -41,17 +69,42 @@ export default function PremiumReservation() {
     ]
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 5) {
       setStep(step + 1)
     } else if (step === 5) {
-      navigate('/premium-booking-confirmed', { 
-        state: { 
-          selectedTime, 
-          guests, 
-          tableName: Object.values(tables).flat().find(t => t.id === selectedTable)?.name 
-        } 
-      })
+      if (!orgId) { setSubmitError('No restaurant found.'); return }
+      setIsSubmitting(true)
+      setSubmitError('')
+      try {
+        const dateParts = dateVal.split('/')
+        const reservationDate = dateParts.length === 3 ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : dateVal
+        const [h, m] = (selectedTime || '17:00').split(':').map(Number)
+        const end = new Date(2000, 0, 1, h, m + 90)
+        const endTime = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
+        const selectedTableObj = Object.values(tables).flat().find(t => t.id === selectedTable)
+
+        const payload = {
+          tableId: selectedTable ? String(selectedTable) : undefined,
+          reservationDate,
+          startTime: selectedTime || '17:00',
+          endTime,
+          partySize: guests,
+          guestFirstName: contactInfo.firstName,
+          guestLastName: contactInfo.lastName || undefined,
+          guestEmail: contactInfo.email,
+          guestPhone: contactInfo.phone || undefined,
+          specialRequests: contactInfo.specialRequest || undefined,
+        }
+        const result = await api.post(`/organizations/${orgId}/reservations`, payload)
+        navigate('/premium-booking-confirmed', {
+          state: { selectedTime, guests, tableName: selectedTableObj?.name, reservationId: result.data }
+        })
+      } catch (err) {
+        setSubmitError(err instanceof ApiError ? err.message : 'Failed to create reservation.')
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -153,6 +206,8 @@ export default function PremiumReservation() {
                     <input 
                       type="text" 
                       placeholder="18/02/2026"
+                      value={dateVal}
+                      onChange={(e) => setDateVal(e.target.value)}
                       style={{
                         width: '100%',
                         padding: '16px',
@@ -461,6 +516,8 @@ export default function PremiumReservation() {
                   <input 
                     type="text"
                     placeholder="John"
+                    value={contactInfo.firstName}
+                    onChange={(e) => setContactInfo({ ...contactInfo, firstName: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -479,6 +536,8 @@ export default function PremiumReservation() {
                   <input 
                     type="text"
                     placeholder="Doe"
+                    value={contactInfo.lastName}
+                    onChange={(e) => setContactInfo({ ...contactInfo, lastName: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -497,6 +556,8 @@ export default function PremiumReservation() {
                   <input 
                     type="email"
                     placeholder="johndoe@example.com"
+                    value={contactInfo.email}
+                    onChange={(e) => setContactInfo({ ...contactInfo, email: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -515,6 +576,8 @@ export default function PremiumReservation() {
                   <input 
                     type="tel"
                     placeholder="+1 (555) 000-000"
+                    value={contactInfo.phone}
+                    onChange={(e) => setContactInfo({ ...contactInfo, phone: e.target.value })}
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -533,7 +596,9 @@ export default function PremiumReservation() {
               <div>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Special Request</label>
                 <textarea 
-                  placeholder="Lorem ipsum is simply dummy text"
+                  placeholder="Any special requests or dietary requirements..."
+                  value={contactInfo.specialRequest}
+                  onChange={(e) => setContactInfo({ ...contactInfo, specialRequest: e.target.value })}
                   style={{
                     width: '100%',
                     padding: '16px',
@@ -908,7 +973,7 @@ export default function PremiumReservation() {
               cursor: 'pointer'
             }}
           >
-            {step === 5 ? 'Pay And Confirm Reservation' : step === 4 ? 'Confirm Reservation' : step === 3 ? 'Review Booking' : 'Next'}
+            {step === 5 ? (isSubmitting ? 'Processing...' : 'Pay And Confirm Reservation') : step === 4 ? 'Confirm Reservation' : step === 3 ? 'Review Booking' : 'Next'}
           </button>
         </div>
 

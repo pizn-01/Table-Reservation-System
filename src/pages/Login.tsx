@@ -1,16 +1,39 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { ApiError } from '../lib/api'
 
 export default function Login() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    navigate('/welcome')
+    setError('')
+    setIsLoading(true)
+
+    try {
+      const result = await login(email, password)
+      if (result.restaurant?.setupCompleted) {
+        navigate('/welcome')
+      } else {
+        navigate('/setup')
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -48,6 +71,20 @@ export default function Login() {
         <p style={{ fontSize: '0.875rem', color: '#8b949e', textAlign: 'center', margin: '0 0 20px 0', lineHeight: 1.4 }}>
           Log in to access your account and manage everything in one place.
         </p>
+
+        {error && (
+          <div style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '8px',
+            padding: '10px 16px',
+            marginBottom: '12px',
+            color: '#ef4444',
+            fontSize: '0.8125rem',
+          }}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Email Field */}
@@ -132,23 +169,24 @@ export default function Login() {
           </div>
 
           {/* Sign In Button */}
-          <button type="submit" style={{
+          <button type="submit" disabled={isLoading} style={{
             width: '100%',
             height: '46px',
-            backgroundColor: '#C99C63',
-            color: '#ffffff', // changed to white as requested
+            backgroundColor: isLoading ? '#8b7650' : '#C99C63',
+            color: '#ffffff',
             border: 'none',
             borderRadius: '8px',
             fontSize: '0.9375rem',
             fontWeight: 600,
-            cursor: 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             fontFamily: 'inherit',
             transition: 'background-color 0.2s',
+            opacity: isLoading ? 0.7 : 1,
           }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#b58b57'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#C99C63'}
+          onMouseOver={(e) => !isLoading && (e.currentTarget.style.backgroundColor = '#b58b57')}
+          onMouseOut={(e) => !isLoading && (e.currentTarget.style.backgroundColor = '#C99C63')}
           >
-            Sign In
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
