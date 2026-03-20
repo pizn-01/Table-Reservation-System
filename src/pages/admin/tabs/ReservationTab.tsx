@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Download, Loader2 } from 'lucide-react'
 import StatusBadge from '../../../components/StatusBadge'
-import api, { ApiError } from '../../../lib/api'
+import api, { ApiError, BASE_URL } from '../../../lib/api'
 
 interface ReservationTabProps {
   theme: 'dark' | 'light'
@@ -57,8 +57,7 @@ export default function ReservationTab({ theme, orgId }: ReservationTabProps) {
     if (!orgId) return
     try {
       const token = localStorage.getItem('trs_token')
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1'
-      const response = await fetch(`${baseUrl}/organizations/${orgId}/reservations/export`, {
+      const response = await fetch(`${BASE_URL}/organizations/${orgId}/reservations/export`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       const blob = await response.blob()

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Upload, Download, Loader2 } from 'lucide-react'
-import api, { ApiError } from '../../../lib/api'
+import api, { ApiError, BASE_URL } from '../../../lib/api'
 
 interface FloorMapTabProps {
   theme: 'dark' | 'light'
@@ -51,8 +51,7 @@ export default function FloorMapTab({ theme, orgId }: FloorMapTabProps) {
     try {
       const formData = new FormData()
       formData.append('file', file)
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1'
-      const response = await fetch(`${baseUrl}/organizations/${orgId}/tables/import`, {
+      const response = await fetch(`${BASE_URL}/organizations/${orgId}/tables/import`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('trs_token')}` },
         body: formData,

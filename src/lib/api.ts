@@ -3,7 +3,11 @@
  * Wraps fetch with auth headers, error normalization, and token refresh.
  */
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
+const defaultApiUrl = import.meta.env.PROD 
+  ? 'https://table-reservation-system.fly.dev/api/v1' 
+  : 'http://localhost:3001/api/v1';
+
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL || defaultApiUrl;
 
 // ─── Types ──────────────────────────────────────────────
 
