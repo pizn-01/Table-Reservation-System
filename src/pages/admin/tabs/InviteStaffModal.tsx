@@ -58,47 +58,51 @@ export default function InviteStaffModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-[#0B1517]/80 backdrop-blur-md transition-opacity duration-300"
+        className="absolute inset-0 bg-[#0B1517]/90 backdrop-blur-md transition-opacity duration-300"
         onClick={onClose} 
       />
       
       {/* Modal Container */}
-      <div className="relative w-full max-w-md animate-scale-in">
-        <div className="glass-card shadow-2xl overflow-hidden border-[#30363d]/50 bg-[#161B22]/90">
+      <div className="relative w-full max-w-lg animate-scale-in">
+        <div className="glass-card shadow-2xl overflow-hidden border-[#30363d]/50 bg-[#161B22]/95" style={{ borderRadius: '24px' }}>
           
           {/* Header with Background Pattern/Gradient */}
-          <div className="relative px-8 pt-8 pb-6 border-b border-[#30363d]/30 overflow-hidden">
-            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-gold/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-green-primary/5 rounded-full blur-3xl" />
+          <div className="relative px-10 pt-10 pb-8 border-b border-[#30363d]/30 overflow-hidden">
+            <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-gold/10 rounded-full blur-3xl opacity-50" />
+            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-green-primary/5 rounded-full blur-3xl opacity-30" />
             
             <div className="relative flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-bold text-white tracking-tight">Invite Team Member</h2>
-                <p className="text-dark-text-secondary text-sm mt-1">Grow your restaurant staff</p>
+                <h2 className="text-3xl font-bold text-white tracking-tight" style={{ marginBottom: '4px' }}>Invite Team Member</h2>
+                <p className="text-dark-text-secondary text-base">Expand your restaurant staff and manage roles.</p>
               </div>
               <button 
                 onClick={onClose} 
                 className="p-2 rounded-full hover:bg-white/10 text-dark-text-secondary hover:text-white transition-all duration-200 cursor-pointer"
+                style={{ position: 'absolute', top: '-10px', right: '-10px' }}
               >
-                <X size={20} />
+                <X size={24} />
               </button>
             </div>
           </div>
 
-          <div className="p-8">
+          <div className="p-10">
             {error && (
-              <div className="mb-6 rounded-lg border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400 flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <div className="mb-6 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400 flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                 {error}
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-gold uppercase tracking-wider ml-1">Staff Name</label>
-                <div className="relative group">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-text-muted group-focus-within:text-gold transition-colors duration-200">
-                    <User size={18} />
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-gold uppercase tracking-[0.1em] opacity-80" style={{ display: 'block' }}>Staff Name</label>
+                <div className="relative">
+                  <div 
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-colors duration-200 pointer-events-none"
+                    style={{ zIndex: 10 }}
+                  >
+                    <User size={20} />
                   </div>
                   <input
                     type="text"
@@ -106,16 +110,20 @@ export default function InviteStaffModal({
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="Enter full name"
-                    className="input-dark pl-11 bg-[#0d1117]/50 border-[#30363d] focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all duration-200"
+                    className="input-dark bg-[#0d1117]/60 border-[#30363d] focus:border-gold/60 focus:ring-2 focus:ring-gold/10 transition-all duration-200"
+                    style={{ paddingLeft: '48px', height: '52px', fontSize: '1rem' }}
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-gold uppercase tracking-wider ml-1">Email Address</label>
-                <div className="relative group">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-text-muted group-focus-within:text-gold transition-colors duration-200">
-                    <Mail size={18} />
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-gold uppercase tracking-[0.1em] opacity-80" style={{ display: 'block' }}>Email Address</label>
+                <div className="relative">
+                  <div 
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-colors duration-200 pointer-events-none"
+                    style={{ zIndex: 10 }}
+                  >
+                    <Mail size={20} />
                   </div>
                   <input
                     type="email"
@@ -123,21 +131,26 @@ export default function InviteStaffModal({
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     placeholder="staff@example.com"
-                    className="input-dark pl-11 bg-[#0d1117]/50 border-[#30363d] focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all duration-200"
+                    className="input-dark bg-[#0d1117]/60 border-[#30363d] focus:border-gold/60 focus:ring-2 focus:ring-gold/10 transition-all duration-200"
+                    style={{ paddingLeft: '48px', height: '52px', fontSize: '1rem' }}
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-semibold text-gold uppercase tracking-wider ml-1">Access Level</label>
-                <div className="relative group">
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-text-muted group-focus-within:text-gold transition-colors duration-200">
-                    <Shield size={18} />
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-gold uppercase tracking-[0.1em] opacity-80" style={{ display: 'block' }}>Access Level</label>
+                <div className="relative">
+                  <div 
+                    className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-colors duration-200 pointer-events-none"
+                    style={{ zIndex: 10 }}
+                  >
+                    <Shield size={20} />
                   </div>
                   <select
                     value={form.role}
                     onChange={(e) => setForm({ ...form, role: e.target.value })}
-                    className="input-dark pl-11 bg-[#0d1117]/50 border-[#30363d] focus:border-gold/50 focus:ring-1 focus:ring-gold/20 transition-all duration-200 appearance-none"
+                    className="input-dark bg-[#0d1117]/60 border-[#30363d] focus:border-gold/60 focus:ring-2 focus:ring-gold/10 transition-all duration-200 appearance-none cursor-pointer"
+                    style={{ paddingLeft: '48px', height: '52px', fontSize: '1rem' }}
                   >
                     <option value="manager" className="bg-[#161B22]">Manager (Full Access)</option>
                     <option value="host" className="bg-[#161B22]">Host (Reservations & Tables)</option>
@@ -146,22 +159,24 @@ export default function InviteStaffModal({
                 </div>
               </div>
 
-              <div className="pt-4 flex items-center gap-4">
+              <div className="pt-6" style={{ display: 'flex', gap: '16px' }}>
                 <button 
                   type="button" 
                   onClick={onClose} 
-                  className="flex-1 py-3 px-6 rounded-xl border border-[#30363d] text-white font-medium hover:bg-white/5 transition-all duration-200"
+                  className="rounded-xl border border-[#30363d] text-white font-semibold hover:bg-white/5 transition-all duration-200 active:scale-[0.98]"
+                  style={{ flex: 1, height: '52px' }}
                 >
                   Cancel
                 </button>
                 <button 
                   type="submit" 
                   disabled={isSubmitting} 
-                  className="flex-1 btn-gold py-3 px-6 rounded-xl shadow-lg shadow-gold/10 active:scale-95 disabled:opacity-50 disabled:active:scale-100"
+                  className="btn-gold rounded-xl shadow-xl shadow-gold/20 active:scale-[0.97] transition-all duration-200 text-white font-bold"
+                  style={{ flex: 1.5, height: '52px' }}
                 >
                   {isSubmitting ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="flex items-center justify-center gap-3">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       <span>Sending...</span>
                     </div>
                   ) : 'Send Invite'}
