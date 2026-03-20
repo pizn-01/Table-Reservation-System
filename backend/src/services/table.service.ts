@@ -204,7 +204,12 @@ export class TableService {
       }
     }
 
-    const tableRecords = tables.map((t) => ({
+    // Deduplicate tables by tableNumber to prevent PostgreSQL "ON CONFLICT" errors
+    const uniqueTables = Array.from(
+      new Map(tables.map((t) => [t.tableNumber, t])).values()
+    );
+
+    const tableRecords = uniqueTables.map((t) => ({
       restaurant_id: restaurantId,
       table_number: t.tableNumber,
       name: `Table ${t.tableNumber.replace('#', '')}`,

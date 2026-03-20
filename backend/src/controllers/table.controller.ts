@@ -107,17 +107,25 @@ export class TableController {
         trim: true,
       });
 
-      const tables = (records as any[]).map((row: any) => ({
-        tableNumber: row['Table'] || row['table'] || row['table_number'] || '',
-        capacity: parseInt(row['Capacity'] || row['capacity'] || '2', 10),
-        area: row['Area'] || row['area'] || '',
-        type: row['Type'] || row['type'] || '',
-        positionX: row['position_x'] || row['PositionX'] ? parseFloat(row['position_x'] || row['PositionX']) : undefined,
-        positionY: row['position_y'] || row['PositionY'] ? parseFloat(row['position_y'] || row['PositionY']) : undefined,
-        isMergeable: ['true', '1', 'yes'].includes((row['is_mergeable'] || row['Mergeable'] || '').toLowerCase()),
-        width: row['width'] || row['Width'] ? parseFloat(row['width'] || row['Width']) : undefined,
-        height: row['height'] || row['Height'] ? parseFloat(row['height'] || row['Height']) : undefined,
-      }));
+      const tables = (records as any[]).map((row: any) => {
+        let tableNumber = row['Table Name'] || row['Table'] || row['table'] || row['table_number'] || '';
+        // If it looks like "Table 1", strip the "Table " part
+        if (typeof tableNumber === 'string' && tableNumber.toLowerCase().startsWith('table ')) {
+          tableNumber = tableNumber.substring(6).trim();
+        }
+
+        return {
+          tableNumber,
+          capacity: parseInt(row['Capacity'] || row['capacity'] || '2', 10),
+          area: row['Section'] || row['Area'] || row['area'] || '',
+          type: row['Type'] || row['type'] || '',
+          positionX: row['position_x'] || row['PositionX'] ? parseFloat(row['position_x'] || row['PositionX']) : undefined,
+          positionY: row['position_y'] || row['PositionY'] ? parseFloat(row['position_y'] || row['PositionY']) : undefined,
+          isMergeable: ['true', '1', 'yes'].includes((row['is_mergeable'] || row['Mergeable'] || '').toLowerCase()),
+          width: row['width'] || row['Width'] ? parseFloat(row['width'] || row['Width']) : undefined,
+          height: row['height'] || row['Height'] ? parseFloat(row['height'] || row['Height']) : undefined,
+        };
+      });
 
       const result = await tableService.importTables(param(req, 'orgId'), tables);
       res.status(201).json({ success: true, data: result, message: `${result.length} tables imported` });
