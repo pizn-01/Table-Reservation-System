@@ -21,6 +21,7 @@ import UserReservationWizard from './pages/user-reservation/UserReservationWizar
 import UserBookingConfirmed from './pages/user-reservation/UserBookingConfirmed'
 import BookATableWizard from './pages/public-reservation/BookATableWizard'
 import PublicBookingConfirmed from './pages/public-reservation/PublicBookingConfirmed'
+import AcceptInvite from './pages/AcceptInvite'
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
       <Route path="/customer-login" element={<CustomerLogin />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/staff-login" element={<StaffLogin />} />
+      <Route path="/accept-invite" element={<AcceptInvite />} />
       <Route path="/book-a-table" element={<BookATableWizard />} />
       <Route path="/book-a-table/:slug" element={<BookATableWizard />} />
       <Route path="/public-booking-confirmed" element={<PublicBookingConfirmed />} />
