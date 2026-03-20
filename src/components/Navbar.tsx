@@ -50,7 +50,7 @@ export default function Navbar({ variant = 'public', theme = 'dark', onToggleThe
       >
         <img 
           src="/images/blackstone_Logo.png" 
-          alt="Blackstone Logo" 
+          alt="Restaurant Logo" 
           style={{ height: '32px', width: 'auto', display: 'block' }} 
         />
       </Link>

@@ -74,6 +74,7 @@ export class OrganizationService {
       .single();
 
     if (error || !data) {
+      console.error('Organization update failed:', error);
       throw new AppError('Failed to update organization', 500);
     }
 
@@ -106,6 +107,7 @@ export class OrganizationService {
       .single();
 
     if (error || !data) {
+      console.error('Organization setup update failed:', error);
       throw new AppError('Failed to update setup progress', 500);
     }
 

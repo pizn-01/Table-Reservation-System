@@ -19,10 +19,10 @@ export default function Landing() {
   const [description, setDescription] = useState('Experience authentic italian cuisine\nin an elegant atmosphere')
 
   useEffect(() => {
-    // We fetch the first org or public default slug (e.g. 'blackstone' matching the logo)
     const fetchOrg = async () => {
+      const publicSlug = import.meta.env.VITE_PUBLIC_RESTAURANT_SLUG || 'blackstone'
       try {
-        const res = await api.get<{ data: { name: string, description: string } }>('/public/blackstone/info')
+        const res = await api.get<{ data: { name: string, description: string } }>(`/public/${publicSlug}/info`)
         if (res.data?.data) {
           if (res.data.data.name) setRestaurantName(`Welcome to ${res.data.data.name}`)
           if (res.data.data.description) setDescription(res.data.data.description)
