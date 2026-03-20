@@ -107,7 +107,12 @@ export default function UserStepConfirmReview({ data, onEdit }: UserStepConfirmR
             <div>
               <h3 style={{ fontWeight: 600, color: '#ffffff', fontSize: '0.875rem', margin: 0 }}>Date & Time</h3>
               <p style={{ color: '#8b949e', fontSize: '0.875rem', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                Thu, Mar 5, 2026
+                {new Date(data.date).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
                 <Clock size={12} />
                 {data.time || '17:30'}
               </p>
