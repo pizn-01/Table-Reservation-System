@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Search, MoreVertical, Loader2, Trash2 } from 'lucide-react'
 import StatusBadge from '../../../components/StatusBadge'
 import api, { ApiError } from '../../../lib/api'
+import InviteStaffModal from './InviteStaffModal'
 
 interface StaffManagementTabProps {
   theme: 'dark' | 'light'
@@ -25,21 +26,23 @@ export default function StaffManagementTab({ theme, orgId }: StaffManagementTabP
   const [error, setError] = useState('')
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+
+  const fetchStaff = async () => {
+    if (!orgId) return
+    setIsLoading(true)
+    setError('')
+    try {
+      const res = await api.get<StaffMember[]>(`/organizations/${orgId}/staff`)
+      setStaff(res.data || [])
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Failed to load staff.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    if (!orgId) return
-    const fetchStaff = async () => {
-      setIsLoading(true)
-      setError('')
-      try {
-        const res = await api.get<StaffMember[]>(`/organizations/${orgId}/staff`)
-        setStaff(res.data || [])
-      } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'Failed to load staff.')
-      } finally {
-        setIsLoading(false)
-      }
-    }
     fetchStaff()
   }, [orgId])
 
@@ -96,21 +99,55 @@ export default function StaffManagementTab({ theme, orgId }: StaffManagementTabP
             }}
           />
         </div>
-        <select
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          style={{
-            padding: '10px 16px', backgroundColor: isDark ? '#161B22' : '#ffffff',
-            border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`, borderRadius: '8px',
-            color: isDark ? '#ffffff' : '#1f2937', fontSize: '0.875rem', cursor: 'pointer', minWidth: '150px'
-          }}
-        >
-          <option value="all">All Roles</option>
-          <option value="manager">Manager</option>
-          <option value="host">Host</option>
-          <option value="viewer">Viewer</option>
-        </select>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            style={{
+              padding: '10px 16px', backgroundColor: isDark ? '#161B22' : '#ffffff',
+              border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`, borderRadius: '8px',
+              color: isDark ? '#ffffff' : '#1f2937', fontSize: '0.875rem', cursor: 'pointer', minWidth: '150px'
+            }}
+          >
+            <option value="all">All Roles</option>
+            <option value="manager">Manager</option>
+            <option value="host">Host</option>
+            <option value="viewer">Viewer</option>
+          </select>
+
+          <button
+            onClick={() => setIsInviteModalOpen(true)}
+            style={{
+              backgroundColor: isDark ? '#10b981' : '#059669',
+              color: '#ffffff',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: 'none',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'opacity 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
+            onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
+          >
+            Invite Staff
+          </button>
+        </div>
       </div>
+
+      <InviteStaffModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        onSuccess={() => {
+          fetchStaff()
+          alert('Staff member invited successfully!')
+        }}
+        orgId={orgId}
+      />
 
       {filtered.length === 0 ? (
         <p style={{ color: isDark ? '#8b949e' : '#6b7280', textAlign: 'center', padding: '32px 0' }}>
