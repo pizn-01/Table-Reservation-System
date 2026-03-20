@@ -116,11 +116,27 @@ export default function FloorMapTab({ theme, orgId }: FloorMapTabProps) {
         <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0, color: isDark ? '#ffffff' : '#1f2937' }}>
           {isSampleData ? 'Sample Sheet' : `Your Tables (${tables.length})`}
         </h3>
-        <button style={{
-          display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px',
-          backgroundColor: '#C99C63', color: '#ffffff', fontWeight: 500, borderRadius: '8px',
-          border: 'none', fontSize: '0.875rem', cursor: 'pointer'
-        }}>
+        <button
+          onClick={() => {
+            const headers = ['Table,Capacity,Area,Type']
+            const rows = tables.map(t => `"${t.table_number}",${t.capacity},"${t.area_name || ''}","${t.table_type || ''}"`)
+            const csv = [headers, ...rows].join('\n')
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `tables-${new Date().toISOString().slice(0, 10)}.csv`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+          disabled={isSampleData}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px',
+            backgroundColor: isSampleData ? '#4b5563' : '#C99C63', color: '#ffffff', fontWeight: 500, borderRadius: '8px',
+            border: 'none', fontSize: '0.875rem', cursor: isSampleData ? 'not-allowed' : 'pointer',
+            opacity: isSampleData ? 0.5 : 1,
+          }}
+        >
           <Download size={16} /> Download
         </button>
       </div>

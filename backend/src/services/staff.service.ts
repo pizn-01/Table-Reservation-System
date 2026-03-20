@@ -148,10 +148,11 @@ export class StaffService {
     let authUser: any = null;
     let createdAuthUserId: string | null = null;
 
-    const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(staffRecord.email);
+    const { data: { users: matchedUsers } } = await supabaseAdmin.auth.admin.listUsers();
+    const existingAuthUser = matchedUsers?.find((u: any) => u.email === staffRecord.email);
 
-    if (existingUser?.user) {
-      authUser = existingUser.user;
+    if (existingAuthUser) {
+      authUser = existingAuthUser;
       await supabaseAdmin.auth.admin.updateUserById(authUser.id, {
         user_metadata: {
           ...authUser.user_metadata,

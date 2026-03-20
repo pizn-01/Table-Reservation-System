@@ -209,6 +209,39 @@ class EmailService {
       text: `You requested a password reset. Visit this link to set a new password: ${params.resetUrl}`,
     });
   }
+
+  /**
+   * Send a reservation modification email.
+   */
+  async sendReservationModification(params: {
+    to: string;
+    guestName: string;
+    restaurantName: string;
+    date: string;
+    time: string;
+    partySize: number;
+    confirmationId: string;
+  }) {
+    return this.send({
+      to: params.to,
+      subject: `Reservation Updated — ${params.restaurantName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Your Reservation Has Been Updated</h2>
+          <p>Hi ${params.guestName},</p>
+          <p>Your reservation at <strong>${params.restaurantName}</strong> has been modified. Here are the updated details:</p>
+          <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Date</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">${params.date}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Time</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">${params.time}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Party Size</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">${params.partySize} guests</td></tr>
+            <tr><td style="padding:8px;color:#666;">Confirmation #</td><td style="padding:8px;font-weight:bold;">${params.confirmationId}</td></tr>
+          </table>
+          <p style="color:#666;font-size:13px;">If you did not request this change, please contact the restaurant directly.</p>
+        </div>
+      `,
+      text: `Hi ${params.guestName}, your reservation at ${params.restaurantName} has been updated. New details: ${params.date} at ${params.time} for ${params.partySize} guests. Confirmation #${params.confirmationId}`,
+    });
+  }
 }
 
 export const emailService = new EmailService();

@@ -291,6 +291,10 @@ export default function FloorPlanCanvas({
   viewMode,
   getTableStatus,
   onTableClick,
+  onPositionsChange,
+  onSaveStart,
+  onSaveEnd,
+  onSaveError,
 }: FloorPlanCanvasProps) {
   // Local positions state for drag-and-drop
   const [positions, setPositions] = useState<Record<string, { x: number; y: number }>>({})
@@ -322,7 +326,7 @@ export default function FloorPlanCanvas({
       try {
         if (typeof onSaveStart === 'function') onSaveStart()
         const res = await api.patch(`/organizations/${orgId}/tables/positions`, { positions: posArray })
-        if (typeof onSaveEnd === 'function') onSaveEnd(res.data || null)
+        if (typeof onSaveEnd === 'function') onSaveEnd((res.data as { updated: number } | null) || null)
       } catch (err) {
         console.error('Failed to save table positions:', err)
         if (typeof onSaveError === 'function') onSaveError(err)

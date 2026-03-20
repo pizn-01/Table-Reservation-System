@@ -43,7 +43,7 @@ export default function FloorPlanEditor() {
     try {
       const res = await api.post(`/organizations/${orgId}/areas`, { name: areaName })
       if (res.success && res.data) {
-        setAreas(prev => [...prev, res.data])
+        setAreas(prev => [...prev, res.data as { id: string; name: string }])
         setAreaName('')
       }
     } catch (err) {
@@ -55,7 +55,7 @@ export default function FloorPlanEditor() {
     try {
       const res = await api.put(`/organizations/${orgId}/areas/${id}`, { name })
       if (res.success && res.data) {
-        setAreas(prev => prev.map(a => a.id === id ? res.data : a))
+        setAreas(prev => prev.map(a => a.id === id ? (res.data as { id: string; name: string }) : a))
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to update area')
@@ -128,7 +128,7 @@ export default function FloorPlanEditor() {
       }
       const res = await api.post(`/organizations/${orgId}/tables`, payload)
       if (res.success && res.data) {
-        setTables(prev => [...prev, res.data])
+        setTables(prev => [...prev, res.data as FloorTable])
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to create table')
@@ -140,8 +140,8 @@ export default function FloorPlanEditor() {
     try {
       const res = await api.put(`/organizations/${orgId}/tables/${selected.id}`, patch)
       if (res.success && res.data) {
-        setTables(prev => prev.map(t => t.id === selected.id ? res.data : t))
-        setSelected(res.data)
+        setTables(prev => prev.map(t => t.id === selected.id ? (res.data as FloorTable) : t))
+        setSelected(res.data as FloorTable)
       }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to update table')
@@ -230,7 +230,7 @@ export default function FloorPlanEditor() {
               <input type="number" value={selected.positionY ?? 0} onChange={(e) => setSelected({ ...selected, positionY: parseFloat(e.target.value || '0') })} className="input-dark" />
 
               <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button onClick={() => selected && handleUpdateTable({ name: selected.name, capacity: selected.capacity, areaId: selected.area?.id || null, positionX: selected.positionX ?? 0, positionY: selected.positionY ?? 0 })} className="btn-gold">Save</button>
+                <button onClick={() => selected && handleUpdateTable({ name: selected.name, capacity: selected.capacity, area: selected.area, positionX: selected.positionX ?? 0, positionY: selected.positionY ?? 0 } as any)} className="btn-gold">Save</button>
                 <button onClick={() => selected && handleDeleteTable(selected.id)} className="btn-outline">Delete</button>
               </div>
             </div>

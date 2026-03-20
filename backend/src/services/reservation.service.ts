@@ -238,7 +238,7 @@ export class ReservationService {
 
     const { data: org } = await supabaseAdmin
       .from('organizations')
-      .select('default_reservation_duration_min, max_party_size, opening_time, closing_time, max_advance_booking_days')
+      .select('name, default_reservation_duration_min, max_party_size, opening_time, closing_time, max_advance_booking_days')
       .eq('id', restaurantId)
       .single();
 
@@ -320,7 +320,24 @@ export class ReservationService {
       .single();
 
     if (error || !data) throw new NotFoundError('Reservation');
-    return this.formatReservation(data);
+
+    const formattedRes = this.formatReservation(data);
+
+    // Send modification email asynchronously (do not block the response)
+    const guestEmail = data.guest_email;
+    if (guestEmail && org?.name) {
+      emailService.sendReservationModification({
+        to: guestEmail,
+        guestName: data.guest_first_name || 'Guest',
+        restaurantName: org.name,
+        date: data.reservation_date,
+        time: data.start_time,
+        partySize: data.party_size,
+        confirmationId: data.id.split('-')[0].toUpperCase(),
+      });
+    }
+
+    return formattedRes;
   }
 
   /**
