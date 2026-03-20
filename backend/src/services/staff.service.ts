@@ -100,7 +100,7 @@ export class StaffService {
       .single();
 
     const inviteToken = this.createInviteToken(data.id);
-    const baseUrl = env.CORS_ORIGINS.split(',')[0];
+    const baseUrl = env.FRONTEND_URL;
     const inviteUrl = `${baseUrl}/accept-invite?token=${inviteToken}`;
 
     emailService.sendStaffInvite({
