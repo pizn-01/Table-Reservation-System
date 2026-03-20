@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import SignUp from './pages/SignUp'
 import CustomerSignUp from './pages/CustomerSignUp'
 import CustomerLogin from './pages/CustomerLogin'
+import ForgotPassword from './pages/ForgotPassword'
 import CustomerDashboard from './pages/CustomerDashboard'
 import ReservationWizard from './pages/reservation/ReservationWizard'
 import BookingConfirmed from './pages/reservation/BookingConfirmed'
@@ -30,6 +31,7 @@ function App() {
       <Route path="/signup" element={<SignUp />} />
       <Route path="/customer-signup" element={<CustomerSignUp />} />
       <Route path="/customer-login" element={<CustomerLogin />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/staff-login" element={<StaffLogin />} />
       <Route path="/book-a-table" element={<BookATableWizard />} />
       <Route path="/book-a-table/:slug" element={<BookATableWizard />} />

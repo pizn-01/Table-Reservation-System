@@ -163,9 +163,9 @@ export default function Login() {
 
           {/* Forgot Password */}
           <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-            <a href="#" style={{ fontSize: '0.8125rem', color: '#6B9E78', textDecoration: 'none' }}>
+            <Link to="/forgot-password" style={{ fontSize: '0.8125rem', color: '#6B9E78', textDecoration: 'none' }}>
               Forgot Password?
-            </a>
+            </Link>
           </div>
 
           {/* Sign In Button */}
