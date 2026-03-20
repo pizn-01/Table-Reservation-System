@@ -144,25 +144,42 @@ export class StaffService {
 
     const userRole = roleMap[staffRecord.role] || UserRole.VIEWER;
 
-    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-      email: staffRecord.email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        name,
-        role: userRole,
-      },
-    });
+    // 2. Handle Supabase Auth user (Create or Link existing)
+    let authUser;
+    const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(staffRecord.email);
 
-    if (authError || !authData.user) {
-      throw new AppError(authError?.message || 'Failed to create account', 500);
+    if (existingUser?.user) {
+      authUser = existingUser.user;
+      // Optionally update metadata if needed
+      await supabaseAdmin.auth.admin.updateUserById(authUser.id, {
+        user_metadata: {
+          ...authUser.user_metadata,
+          name,
+          role: userRole,
+        },
+      });
+    } else {
+      const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        email: staffRecord.email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          name,
+          role: userRole,
+        },
+      });
+
+      if (authError || !authData.user) {
+        throw new AppError(authError?.message || 'Failed to create account', 500);
+      }
+      authUser = authData.user;
     }
 
     // 3. Link auth user to staff record
     const { error: updateErr } = await supabaseAdmin
       .from('staff_members')
       .update({
-        user_id: authData.user.id,
+        user_id: authUser.id,
         name,
         accepted_at: new Date().toISOString(),
       })

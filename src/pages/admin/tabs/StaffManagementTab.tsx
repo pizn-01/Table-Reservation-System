@@ -117,22 +117,17 @@ export default function StaffManagementTab({ theme, orgId }: StaffManagementTabP
 
           <button
             onClick={() => setIsInviteModalOpen(true)}
+            className="btn-gold"
             style={{
-              backgroundColor: isDark ? '#10b981' : '#059669',
-              color: '#ffffff',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: 'none',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              cursor: 'pointer',
+              padding: '12px 24px',
+              borderRadius: '12px',
+              fontSize: '0.9rem',
+              fontWeight: 700,
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              transition: 'opacity 0.2s'
+              gap: '10px',
+              boxShadow: '0 10px 20px -5px rgba(212, 168, 86, 0.2)'
             }}
-            onMouseOver={(e) => e.currentTarget.style.opacity = '0.9'}
-            onMouseOut={(e) => e.currentTarget.style.opacity = '1'}
           >
             Invite Staff
           </button>
@@ -144,7 +139,6 @@ export default function StaffManagementTab({ theme, orgId }: StaffManagementTabP
         onClose={() => setIsInviteModalOpen(false)}
         onSuccess={() => {
           fetchStaff()
-          alert('Staff member invited successfully!')
         }}
         orgId={orgId}
       />

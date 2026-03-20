@@ -76,92 +76,116 @@ export default function AcceptInvite() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B1517] flex items-center justify-center p-4 py-12">
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-gold/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-green-primary/5 rounded-full blur-[120px]" />
-      </div>
+    <div className="min-h-screen bg-[#0B1517] flex items-center justify-center p-4 py-12 relative overflow-hidden">
+      {/* Dynamic Background Blurs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-gold/5 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-green-primary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
 
-      <div className="relative z-10 w-full max-w-lg animate-fade-in">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl font-bold text-white mb-3 tracking-tight">Setup Your Account</h1>
-          <p className="text-dark-text-secondary text-lg">You've been invited to join the restaurant staff</p>
+      <div className="relative z-10 w-full max-w-xl animate-fade-in px-4">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-sm font-medium">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-gold"></span>
+            </span>
+            Staff Invitation
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight leading-tight">Setup Your Account</h1>
+          <p className="text-dark-text-secondary text-lg max-w-md mx-auto">Create your password to join the restaurant team and start managing reservations.</p>
         </div>
 
-        <div className="glass-card shadow-2xl p-10 border-[#30363d]/50 bg-[#161B22]/80">
+        <div className="glass-card shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] p-12 border-[#30363d]/50 bg-[#161B22]/95" style={{ borderRadius: '28px' }}>
           {error && (
-            <div className="mb-8 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-4 text-sm text-red-400 flex items-start gap-3">
-              <AlertCircle size={20} className="shrink-0 mt-0.5" />
-              <p>{error}</p>
+            <div className="mb-10 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-sm text-red-400 flex items-start gap-4 animate-shake">
+              <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+                <AlertCircle size={24} className="text-red-500" />
+              </div>
+              <div className="flex-1 pt-1.5">
+                <p className="font-semibold text-red-400 mb-1">Registration Issue</p>
+                <p className="opacity-80">{error}</p>
+              </div>
             </div>
           )}
 
           {!token ? (
-            <div className="text-center py-4">
-              <Link to="/" className="btn-outline inline-block">Return Home</Link>
+            <div className="text-center py-6">
+              <p className="text-dark-text-muted mb-8">This invitation link is invalid or has expired.</p>
+              <Link to="/" className="btn-gold px-8 py-3 rounded-xl inline-flex items-center gap-2">
+                Return to Home <ArrowRight size={18} />
+              </Link>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gold uppercase tracking-[0.15em] ml-1">Your Full Name</label>
+            <form onSubmit={handleSubmit} className="space-y-10">
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-gold uppercase tracking-[0.25em] pl-1 opacity-90 block">Your Full Name</label>
                 <div className="relative group">
-                  <User size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-colors group-focus-within:text-gold" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
+                    <User size={22} />
+                  </div>
                   <input
                     type="text"
                     required
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    placeholder="Enter your name"
-                    className="input-dark pl-12 bg-[#0d1117]/60 border-[#30363d] focus:border-gold/60 focus:ring-2 focus:ring-gold/10 h-14"
+                    placeholder="e.g. John Doe"
+                    className="input-dark w-full bg-[#0d1117]/80 border-[#30363d] focus:border-gold/60 focus:ring-4 focus:ring-gold/10 transition-all duration-300"
+                    style={{ paddingLeft: '54px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gold uppercase tracking-[0.15em] ml-1">Create Password</label>
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-gold uppercase tracking-[0.25em] pl-1 opacity-90 block">Create Password</label>
                 <div className="relative group">
-                  <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-colors group-focus-within:text-gold" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
+                    <Lock size={22} />
+                  </div>
                   <input
                     type="password"
                     required
                     minLength={8}
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder="Min. 8 characters"
-                    className="input-dark pl-12 bg-[#0d1117]/60 border-[#30363d] focus:border-gold/60 focus:ring-2 focus:ring-gold/10 h-14"
+                    placeholder="At least 8 characters"
+                    className="input-dark w-full bg-[#0d1117]/80 border-[#30363d] focus:border-gold/60 focus:ring-4 focus:ring-gold/10 transition-all duration-300"
+                    style={{ paddingLeft: '54px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gold uppercase tracking-[0.15em] ml-1">Confirm Password</label>
+              <div className="space-y-4">
+                <label className="text-[11px] font-black text-gold uppercase tracking-[0.25em] pl-1 opacity-90 block">Confirm Password</label>
                 <div className="relative group">
-                  <Lock size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-colors group-focus-within:text-gold" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
+                    <Lock size={22} />
+                  </div>
                   <input
                     type="password"
                     required
                     value={form.confirmPassword}
                     onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                     placeholder="Repeat password"
-                    className="input-dark pl-12 bg-[#0d1117]/60 border-[#30363d] focus:border-gold/60 focus:ring-2 focus:ring-gold/10 h-14"
+                    className="input-dark w-full bg-[#0d1117]/80 border-[#30363d] focus:border-gold/60 focus:ring-4 focus:ring-gold/10 transition-all duration-300"
+                    style={{ paddingLeft: '54px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
                   />
                 </div>
               </div>
 
-              <div className="pt-4">
+              <div className="pt-6">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-gold w-full py-4 rounded-xl text-lg font-bold shadow-xl shadow-gold/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                  className="btn-gold w-full h-[64px] rounded-2xl text-lg font-black tracking-widest uppercase shadow-[0_20px_40px_-12px_rgba(212,168,86,0.3)] active:scale-[0.98] hover:scale-[1.01] transition-all flex items-center justify-center gap-4 disabled:opacity-50"
+                  style={{ background: 'linear-gradient(135deg, #d4a856 0%, #b88d3e 100%)' }}
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 size={24} className="animate-spin" />
-                      <span>Creating Account...</span>
+                      <span>Processing...</span>
                     </>
                   ) : (
                     <>
-                      Complete Setup <ArrowRight size={20} />
+                      Complete Setup <ArrowRight size={22} />
                     </>
                   )}
                 </button>
@@ -170,8 +194,8 @@ export default function AcceptInvite() {
           )}
         </div>
         
-        <p className="mt-8 text-center text-dark-text-secondary">
-          Already have an account? <Link to="/staff-login" className="text-gold hover:text-gold-light transition-colors font-semibold border-b border-gold/30">Sign in instead</Link>
+        <p className="mt-12 text-center text-dark-text-secondary">
+          Already have an account? <Link to="/staff-login" className="text-gold hover:text-white transition-all duration-300 font-bold border-b border-gold/20 hover:border-gold pb-1 ml-1">Sign in instead</Link>
         </p>
       </div>
     </div>
