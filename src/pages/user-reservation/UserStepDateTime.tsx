@@ -107,6 +107,7 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
             ref={dateRef}
             type="date"
             value={data.date}
+            min={new Date().toISOString().split('T')[0]}
             onChange={(e) => updateData({ date: e.target.value })}
             style={{ 
               padding: '12px 16px', 
