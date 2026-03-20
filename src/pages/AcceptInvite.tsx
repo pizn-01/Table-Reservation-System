@@ -83,12 +83,12 @@ export default function AcceptInvite() {
 
       <div className="relative z-10 w-full max-w-xl animate-fade-in px-4">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-sm font-medium">
+          <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[0.2em] leading-none">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-gold"></span>
             </span>
-            Staff Invitation
+            Staff Invite
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight leading-tight">Setup Your Account</h1>
           <p className="text-dark-text-secondary text-lg max-w-md mx-auto">Create your password to join the restaurant team and start managing reservations.</p>
@@ -101,8 +101,8 @@ export default function AcceptInvite() {
                 <AlertCircle size={24} className="text-red-500" />
               </div>
               <div className="flex-1 pt-1.5">
-                <p className="font-semibold text-red-400 mb-1">Registration Issue</p>
-                <p className="opacity-80">{error}</p>
+                <p className="font-semibold text-red-400 mb-1 leading-none uppercase tracking-wider text-[11px]">Registration Issue</p>
+                <p className="opacity-80 mt-1">{error}</p>
               </div>
             </div>
           )}
@@ -117,10 +117,10 @@ export default function AcceptInvite() {
           ) : (
             <form onSubmit={handleSubmit} className="space-y-10">
               <div className="space-y-4">
-                <label className="text-[11px] font-black text-gold uppercase tracking-[0.25em] pl-1 opacity-90 block">Your Full Name</label>
+                <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Your Full Name</label>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
-                    <User size={22} />
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
+                    <User size={22} strokeWidth={2.5} />
                   </div>
                   <input
                     type="text"
@@ -129,16 +129,16 @@ export default function AcceptInvite() {
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="e.g. John Doe"
                     className="input-dark w-full bg-[#0d1117]/80 border-[#30363d] focus:border-gold/60 focus:ring-4 focus:ring-gold/10 transition-all duration-300"
-                    style={{ paddingLeft: '54px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
+                    style={{ paddingLeft: '60px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <label className="text-[11px] font-black text-gold uppercase tracking-[0.25em] pl-1 opacity-90 block">Create Password</label>
+                <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Create Password</label>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
-                    <Lock size={22} />
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
+                    <Lock size={22} strokeWidth={2.5} />
                   </div>
                   <input
                     type="password"
@@ -148,16 +148,16 @@ export default function AcceptInvite() {
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     placeholder="At least 8 characters"
                     className="input-dark w-full bg-[#0d1117]/80 border-[#30363d] focus:border-gold/60 focus:ring-4 focus:ring-gold/10 transition-all duration-300"
-                    style={{ paddingLeft: '54px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
+                    style={{ paddingLeft: '60px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
                   />
                 </div>
               </div>
 
               <div className="space-y-4">
-                <label className="text-[11px] font-black text-gold uppercase tracking-[0.25em] pl-1 opacity-90 block">Confirm Password</label>
+                <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Confirm Password</label>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
-                    <Lock size={22} />
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
+                    <Lock size={22} strokeWidth={2.5} />
                   </div>
                   <input
                     type="password"
@@ -166,7 +166,7 @@ export default function AcceptInvite() {
                     onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
                     placeholder="Repeat password"
                     className="input-dark w-full bg-[#0d1117]/80 border-[#30363d] focus:border-gold/60 focus:ring-4 focus:ring-gold/10 transition-all duration-300"
-                    style={{ paddingLeft: '54px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
+                    style={{ paddingLeft: '60px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
                   />
                 </div>
               </div>
@@ -176,7 +176,7 @@ export default function AcceptInvite() {
                   type="submit"
                   disabled={isSubmitting}
                   className="btn-gold w-full h-[64px] rounded-2xl text-lg font-black tracking-widest uppercase shadow-[0_20px_40px_-12px_rgba(212,168,86,0.3)] active:scale-[0.98] hover:scale-[1.01] transition-all flex items-center justify-center gap-4 disabled:opacity-50"
-                  style={{ background: 'linear-gradient(135deg, #d4a856 0%, #b88d3e 100%)' }}
+                  style={{ background: 'linear-gradient(135deg, #d4a856 0%, #b88d3e 100%)', color: '#0B1517' }}
                 >
                   {isSubmitting ? (
                     <>
@@ -185,7 +185,7 @@ export default function AcceptInvite() {
                     </>
                   ) : (
                     <>
-                      Complete Setup <ArrowRight size={22} />
+                      Complete Setup <ArrowRight size={22} strokeWidth={2.5} />
                     </>
                   )}
                 </button>

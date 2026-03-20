@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { X, User, Mail, Shield, AlertCircle, Loader2 } from 'lucide-react'
+import { X, User, Mail, Shield, AlertCircle, Loader2, ArrowRight } from 'lucide-react'
 import api, { ApiError } from '../../../lib/api'
 
 interface InviteStaffModalProps {
@@ -76,8 +76,12 @@ export default function InviteStaffModal({
             
             <div className="relative flex items-center justify-between">
               <div>
-                <div className="inline-block px-3 py-1 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-widest mb-3">
-                  New Member
+                <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[0.2em] leading-none">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-gold"></span>
+                  </span>
+                  Staff Invite
                 </div>
                 <h2 className="text-4xl font-bold text-white tracking-tight">Invite Team</h2>
                 <p className="text-dark-text-secondary text-base mt-2">Expand your restaurant's digital presence.</p>
@@ -95,10 +99,11 @@ export default function InviteStaffModal({
             {error && (
               <div className="mb-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-sm text-red-400 flex items-start gap-4 animate-shake">
                 <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
-                  <AlertCircle size={20} className="text-red-500" />
+                  <AlertCircle size={20} className="text-red-500" strokeWidth={2.5} />
                 </div>
                 <div className="flex-1 pt-0.5">
-                  {error}
+                  <p className="font-semibold text-red-400 mb-1 leading-none uppercase tracking-wider text-[11px]">Invitation Issue</p>
+                  <p className="opacity-80 mt-1">{error}</p>
                 </div>
               </div>
             )}
@@ -107,8 +112,8 @@ export default function InviteStaffModal({
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Staff Name</label>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110" style={{ zIndex: 10 }}>
-                    <User size={22} />
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110" style={{ zIndex: 10 }}>
+                    <User size={22} strokeWidth={2.5} />
                   </div>
                   <input
                     type="text"
@@ -117,7 +122,7 @@ export default function InviteStaffModal({
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                     placeholder="e.g. John Doe"
                     className="input-dark w-full bg-[#0d1117]/80 border-[#30363d] focus:border-gold/60 focus:ring-4 focus:ring-gold/10 transition-all duration-300"
-                    style={{ paddingLeft: '54px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
+                    style={{ paddingLeft: '60px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
                   />
                 </div>
               </div>
@@ -125,8 +130,8 @@ export default function InviteStaffModal({
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Email Address</label>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110" style={{ zIndex: 10 }}>
-                    <Mail size={22} />
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110" style={{ zIndex: 10 }}>
+                    <Mail size={22} strokeWidth={2.5} />
                   </div>
                   <input
                     type="email"
@@ -135,7 +140,7 @@ export default function InviteStaffModal({
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
                     placeholder="staff@restaurant.com"
                     className="input-dark w-full bg-[#0d1117]/80 border-[#30363d] focus:border-gold/60 focus:ring-4 focus:ring-gold/10 transition-all duration-300"
-                    style={{ paddingLeft: '54px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
+                    style={{ paddingLeft: '60px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
                   />
                 </div>
               </div>
@@ -143,14 +148,14 @@ export default function InviteStaffModal({
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Access Level</label>
                 <div className="relative group">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110" style={{ zIndex: 10 }}>
-                    <Shield size={22} />
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110" style={{ zIndex: 10 }}>
+                    <Shield size={22} strokeWidth={2.5} />
                   </div>
                   <select
                     value={form.role}
                     onChange={(e) => setForm({ ...form, role: e.target.value })}
                     className="input-dark w-full bg-[#0d1117]/80 border-[#30363d] focus:border-gold/60 focus:ring-4 focus:ring-gold/10 transition-all duration-300 appearance-none cursor-pointer"
-                    style={{ paddingLeft: '54px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
+                    style={{ paddingLeft: '60px', height: '64px', fontSize: '1.05rem', borderRadius: '16px' }}
                   >
                     <option value="manager" className="bg-[#161B22]">Manager (Full Access)</option>
                     <option value="host" className="bg-[#161B22]">Host (Reservations & Tables)</option>
@@ -172,14 +177,18 @@ export default function InviteStaffModal({
                   type="submit" 
                   disabled={isSubmitting} 
                   className="btn-gold rounded-2xl shadow-[0_20px_40px_-12px_rgba(212,168,86,0.3)] active:scale-[0.97] hover:scale-[1.01] transition-all duration-300 text-white font-black uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50"
-                  style={{ flex: 1.5, height: '64px', background: 'linear-gradient(135deg, #d4a856 0%, #b88d3e 100%)' }}
+                  style={{ flex: 1.5, height: '64px', background: 'linear-gradient(135deg, #d4a856 0%, #b88d3e 100%)', color: '#0B1517' }}
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 size={24} className="animate-spin" />
                       <span>Sending...</span>
                     </>
-                  ) : 'Send Invite'}
+                  ) : (
+                    <>
+                      Send Invite <ArrowRight size={22} strokeWidth={2.5} />
+                    </>
+                  )}
                 </button>
               </div>
             </form>
