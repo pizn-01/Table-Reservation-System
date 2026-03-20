@@ -12,15 +12,23 @@ const defaultProdUrl = 'https://table-reservation-system.fly.dev/api/v1';
 const defaultDevUrl = 'http://localhost:3001/api/v1';
 const envContainsLocalhost = !!envApiBase && (envApiBase.includes('localhost') || envApiBase.includes('127.0.0.1'));
 
+const isLocal = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || 
+   window.location.hostname === '127.0.0.1' || 
+   window.location.hostname.startsWith('192.168.'));
+
 export const BASE_URL = (() => {
+  // 1. If an environment variable is provided and it's not a localhost override on a production site...
   if (envApiBase) {
-    if (import.meta.env.PROD) {
-      // Ignore unsafe localhost env values in production builds
-      return envContainsLocalhost ? defaultProdUrl : envApiBase;
+    if (!isLocal && envContainsLocalhost) {
+      // Unsafe localhost override on production site - default to production backend
+      return defaultProdUrl;
     }
     return envApiBase;
   }
-  return import.meta.env.PROD ? defaultProdUrl : defaultDevUrl;
+  
+  // 2. Default based on runtime detection
+  return isLocal ? defaultDevUrl : defaultProdUrl;
 })();
 
 // ─── Types ──────────────────────────────────────────────
