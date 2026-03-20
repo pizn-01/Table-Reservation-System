@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import DarkProgressBar from '../../components/DarkProgressBar'
 import UserStepDateTime from '../user-reservation/UserStepDateTime'
 import UserStepTableSelect from '../user-reservation/UserStepTableSelect'
@@ -43,13 +43,13 @@ const TOTAL_STEPS = 4
 
 export default function BookATableWizard() {
   const navigate = useNavigate()
+  const { slug } = useParams<{ slug?: string }>()
   const [currentStep, setCurrentStep] = useState(1)
   const [data, setData] = useState<ReservationData>(initialData)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
 
-  // TODO: Make this configurable via URL param or env variable
-  const restaurantSlug = 'blackstone'
+  const restaurantSlug = slug || import.meta.env.VITE_PUBLIC_RESTAURANT_SLUG || 'blackstone'
 
   const updateData = (updates: Partial<ReservationData>) => {
     setData((prev) => ({ ...prev, ...updates }))

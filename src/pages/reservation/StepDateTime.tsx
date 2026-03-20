@@ -32,40 +32,7 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
         const isoDate = data.date.includes('/') 
           ? (() => { const p = data.date.split('/'); return `${p[2]}-${p[1]}-${p[0]}`; })()
           : data.date
-        const res = await api.get<any[]>(`/organizations/${orgId}/reservations?date=${isoDate}`)
-        const bookings = res.data || []
-
-        // A slot is "conflicted" if it overlaps with an existing booking and ALL tables
-        // of sufficient capacity are occupied during that window
-        const booked: string[] = []
-        for (const slot of TIME_SLOTS) {
-          const [sh, sm] = slot.split(':').map(Number)
-          const slotStart = sh * 60 + sm
-          const slotEnd = slotStart + 30 // 30-min slot window
-
-          const overlapping = bookings.filter((b: any) => {
-            const startTime = (b.start_time || b.startTime || '').slice(0, 5)
-            const endTime = (b.end_time || b.endTime || '').slice(0, 5)
-            if (!startTime || !endTime) return false
-            const [bsh, bsm] = startTime.split(':').map(Number)
-            const [beh, bem] = endTime.split(':').map(Number)
-            const bStart = bsh * 60 + bsm
-            const bEnd = beh * 60 + bem
-            return slotStart < bEnd && slotEnd > bStart && (b.status !== 'cancelled' && b.status !== 'no_show')
-          })
-
-          // If there are overlapping reservations for this slot, mark as conflict
-          // This is a conservative approach — in production you'd cross-reference with table count
-          if (overlapping.length > 0) {
-            // Check if ALL available tables are taken during this slot
-            // For now, mark as conflict if 80%+ of bookings overlap (conservative)
-            // A more precise check would use the /tables/availability endpoint per slot
-            // but that's N API calls. We mark it as a "warning" instead.
-          }
-        }
-
-        // Use the availability endpoint to check each slot efficiently
-        // We test a few key slots to mark fully-booked ones
+        // Use availability endpoint per slot to identify fully booked times.
         const conflicted: string[] = []
         await Promise.all(
           TIME_SLOTS.map(async (slot) => {
@@ -175,6 +142,10 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
       <WaitingListModal
         isOpen={showWaitingList}
         onClose={() => setShowWaitingList(false)}
+        orgId={orgId}
+        requestedDate={data.date}
+        requestedTime={data.time}
+        partySize={data.guests}
       />
     </div>
   )

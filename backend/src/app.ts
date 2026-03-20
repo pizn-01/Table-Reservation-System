@@ -17,6 +17,7 @@ import adminRoutes from './routes/admin.routes';
 import customerRoutes from './routes/customer.routes';
 import waitingListRoutes from './routes/waitingList.routes';
 import publicRoutes from './routes/public.routes';
+import posReservationRoutes from './routes/posReservation.routes';
 import { generalLimiter } from './middleware/rateLimiter';
 
 const app = express();
@@ -59,6 +60,7 @@ app.use(`${API_PREFIX}/organizations/:orgId/dashboard`, dashboardRoutes);
 app.use(`${API_PREFIX}/customers`, customerRoutes);
 app.use(`${API_PREFIX}/admin`, adminRoutes);
 app.use(`${API_PREFIX}/public`, publicRoutes);
+app.use(`${API_PREFIX}/pos/:orgId/reservations`, posReservationRoutes);
 
 // ─── 404 Handler ────────────────────────────────────────
 

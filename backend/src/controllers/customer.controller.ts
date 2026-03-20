@@ -51,7 +51,12 @@ export class CustomerController {
       const page = parseInt(req.query.page as string || '1', 10);
       const limit = parseInt(req.query.limit as string || '10', 10);
       const result = await customerService.getReservationHistory(req.user.sub, page, limit);
-      res.json({ success: true, ...result });
+      res.json({
+        success: true,
+        data: result.reservations,
+        reservations: result.reservations,
+        meta: result.meta,
+      });
     } catch (error) {
       next(error);
     }

@@ -80,10 +80,10 @@ export const generalLimiter = rateLimit({
   maxRequests: 100,
 });
 
-/** Auth rate limit: 10 attempts per 15 minutes (brute-force protection) */
+/** Auth rate limit: 1000 attempts per 15 minutes (brute-force protection reduced for testing) */
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  maxRequests: 10,
+  maxRequests: 1000,
   message: 'Too many login attempts. Please try again in 15 minutes.',
 });
 

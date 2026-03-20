@@ -32,6 +32,7 @@ function App() {
       <Route path="/customer-login" element={<CustomerLogin />} />
       <Route path="/staff-login" element={<StaffLogin />} />
       <Route path="/book-a-table" element={<BookATableWizard />} />
+      <Route path="/book-a-table/:slug" element={<BookATableWizard />} />
       <Route path="/public-booking-confirmed" element={<PublicBookingConfirmed />} />
 
       {/* ─── Protected Routes (Auth Required) ──────── */}

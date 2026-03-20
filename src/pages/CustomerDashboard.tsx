@@ -6,15 +6,14 @@ import api, { ApiError } from '../lib/api'
 
 interface Reservation {
   id: string
-  reservation_date: string
-  start_time: string
-  party_size: number
-  table_number?: string
-  table_name?: string
-  area_name?: string
+  reservationDate: string
+  startTime: string
+  partySize: number
+  table?: {
+    tableNumber?: string
+    name?: string
+  } | null
   status: string
-  guest_first_name?: string
-  guest_last_name?: string
 }
 
 export default function CustomerDashboard() {
@@ -35,7 +34,7 @@ export default function CustomerDashboard() {
           api.get<Reservation[]>('/customers/me/reservations/history'),
         ])
         setUpcoming(upcomingRes.data || [])
-        setHistory(historyRes.data || [])
+        setHistory(historyRes.data || (historyRes as any).reservations || [])
       } catch (err) {
         if (err instanceof ApiError) {
           setError(err.message)
@@ -211,21 +210,21 @@ export default function CustomerDashboard() {
                   <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm text-white">
                       <Calendar size={14} className="text-gold" />
-                      {formatDate(res.reservation_date)}
+                      {formatDate(res.reservationDate)}
                     </div>
                     <div className="flex items-center gap-4 text-sm text-dark-text-secondary res-cust-res-meta">
                       <span className="flex items-center gap-1.5">
                         <Clock size={13} />
-                        {formatTime(res.start_time)}
+                        {formatTime(res.startTime)}
                       </span>
                       <span className="flex items-center gap-1.5">
                         <Users size={13} />
-                        {res.party_size} Guests
+                        {res.partySize} Guests
                       </span>
-                      {(res.table_number || res.table_name) && (
+                      {(res.table?.tableNumber || res.table?.name) && (
                         <span className="flex items-center gap-1.5">
                           <MapPin size={13} />
-                          {res.table_name || `Table ${res.table_number}`}{res.area_name ? ` - ${res.area_name}` : ''}
+                          {res.table?.name || `Table ${res.table?.tableNumber}`}
                         </span>
                       )}
                     </div>

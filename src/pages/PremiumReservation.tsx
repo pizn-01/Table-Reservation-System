@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Calendar, Info, Minus, Plus, ChefHat, Users, MapPin, Lock, Pencil, Clock, User, Mail, Phone } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
@@ -10,7 +10,7 @@ export default function PremiumReservation() {
   const orgId = restaurant?.id
   const [step, setStep] = useState(1);
   const [guests, setGuests] = useState(2)
-  const [selectedTable, setSelectedTable] = useState<number | null>(null)
+  const [selectedTable, setSelectedTable] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [contactInfo, setContactInfo] = useState({ firstName: '', lastName: '', email: '', phone: '', specialRequest: '' })
@@ -19,6 +19,14 @@ export default function PremiumReservation() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [hoveredSlot, setHoveredSlot] = useState<string | null>(null)
   const [bookedSlots, setBookedSlots] = useState<string[]>([])
+  const [availableTables, setAvailableTables] = useState<Array<{
+    id: string
+    name: string
+    capacity: number
+    location: string
+    type: string
+    price: number
+  }>>([])
   const dateRef = useRef<HTMLInputElement>(null)
 
   const SLOT_TIMES = ['17:00', '17:30', '18:00', '18:30', '19:00', '19:30', '20:00', '20:30', '21:00', '21:30']
@@ -55,21 +63,44 @@ export default function PremiumReservation() {
 
   const predefinedGuests = [2, 4, 6, 8]
 
-  // Data for Step 2 tables
-  const tables = {
-    window: [
-      { id: 1, name: 'Table 1', capacity: 2, location: 'By the window', type: 'Premium', price: 10 },
-      { id: 2, name: 'Table 2', capacity: 2, location: 'Center area', type: 'VIP', price: 20 },
-    ],
-    mainDining: [
-      { id: 3, name: 'Table 3', capacity: 4, location: 'Private corner', type: 'Standard', price: 0 },
-      { id: 4, name: 'Table 4', capacity: 4, location: 'Near the bar', type: 'Exclusive', price: 15 },
-    ],
-    outdoor: [
-      { id: 5, name: 'Table 5', capacity: 6, location: 'By the window', type: 'Standard', price: 0 },
-      { id: 6, name: 'Table 6', capacity: 6, location: 'Center area', type: 'Standard', price: 0 },
-    ]
-  }
+  useEffect(() => {
+    if (!orgId || !dateVal || !selectedTime || step < 2) return
+    const fetchTablesForSlot = async () => {
+      try {
+        const isoDate = dateVal.includes('/')
+          ? (() => { const p = dateVal.split('/'); return `${p[2]}-${p[1]}-${p[0]}`; })()
+          : dateVal
+        const avail = await api.get<any[]>(
+          `/organizations/${orgId}/tables/availability?date=${isoDate}&time=${selectedTime}&partySize=${guests}`
+        )
+        const mapped = (avail.data || []).map((t: any) => ({
+          id: String(t.id),
+          name: t.name || `Table ${t.tableNumber}`,
+          capacity: t.capacity || guests,
+          location: t.area?.name || 'Main Dining',
+          type: t.type || 'Standard',
+          price: 0,
+        }))
+        setAvailableTables(mapped)
+        if (selectedTable && !mapped.some((t: any) => t.id === selectedTable)) {
+          setSelectedTable(null)
+        }
+      } catch {
+        setAvailableTables([])
+      }
+    }
+    fetchTablesForSlot()
+  }, [orgId, dateVal, selectedTime, guests, step, selectedTable])
+
+  const tables = useMemo(() => {
+    const grouped: Record<string, typeof availableTables> = {}
+    for (const table of availableTables) {
+      const key = table.location || 'Main Dining'
+      if (!grouped[key]) grouped[key] = []
+      grouped[key].push(table)
+    }
+    return grouped
+  }, [availableTables])
 
   const handleNext = async () => {
     setSubmitError('')
@@ -108,7 +139,7 @@ export default function PremiumReservation() {
         const selectedTableObj = Object.values(tables).flat().find(t => t.id === selectedTable)
 
         const payload = {
-          tableId: selectedTable ? String(selectedTable) : undefined,
+          tableId: selectedTable || undefined,
           reservationDate,
           startTime: selectedTime || '17:00',
           endTime,
@@ -423,6 +454,11 @@ export default function PremiumReservation() {
             <div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 600, margin: '0 0 8px 0' }}>Choose Your Table</h2>
               <p style={{ fontSize: '1rem', color: '#8b949e', margin: '0 0 40px 0' }}>Select from our available tables</p>
+              {Object.keys(tables).length === 0 && (
+                <p style={{ color: '#d1d5db', marginBottom: '24px' }}>
+                  No tables available for this time. Please pick a different slot.
+                </p>
+              )}
 
               {/* Render Categories */}
               {Object.entries(tables).map(([category, categoryTables], index) => (
@@ -741,7 +777,7 @@ export default function PremiumReservation() {
                     </div>
                     <div>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 8px 0' }}>Party size</h3>
-                      <span style={{ fontSize: '0.875rem' }}>2 Guests</span>
+                      <span style={{ fontSize: '0.875rem' }}>{guests} Guests</span>
                     </div>
                   </div>
                 </div>
@@ -771,7 +807,7 @@ export default function PremiumReservation() {
                     <div>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 8px 0' }}>Date & Time</h3>
                       <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem' }}>
-                        <span>Thu, Mar 5, 2026</span>
+                        <span>{new Date(`${dateVal}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Clock size={16} />
                           <span>{selectedTime || 'Not selected'}</span>
@@ -809,14 +845,14 @@ export default function PremiumReservation() {
                       <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem', marginBottom: '12px', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Mail size={16} />
-                          <span>johndoe@example.com</span>
+                          <span>{contactInfo.email || 'Not provided'}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Phone size={16} />
-                          <span>+1 (555) 000-000</span>
+                          <span>{contactInfo.phone || 'Not provided'}</span>
                         </div>
                       </div>
-                      <p style={{ fontSize: '0.875rem', margin: 0 }}>Lorem ipsum is simply dummy text</p>
+                      <p style={{ fontSize: '0.875rem', margin: 0 }}>{contactInfo.specialRequest || 'No special request'}</p>
                     </div>
                   </div>
                 </div>
@@ -908,7 +944,7 @@ export default function PremiumReservation() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontWeight: 500 }}>Date</span>
-                      <span style={{ color: '#cfcfcf', fontSize: '0.875rem' }}>Tue, Feb 17, 2026</span>
+                      <span style={{ color: '#cfcfcf', fontSize: '0.875rem' }}>{new Date(`${dateVal}T00:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span style={{ fontWeight: 500 }}>Time</span>

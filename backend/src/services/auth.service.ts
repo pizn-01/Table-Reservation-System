@@ -393,9 +393,13 @@ export class AuthService {
    * Reset password using token from Supabase Auth email link.
    */
   async resetPassword(accessToken: string, newPassword: string) {
+    const { data: tokenUser, error: tokenErr } = await supabaseAdmin.auth.getUser(accessToken);
+    if (tokenErr || !tokenUser?.user?.id) {
+      throw new AppError('Failed to reset password. The link may have expired.', 400);
+    }
+
     const { error } = await supabaseAdmin.auth.admin.updateUserById(
-      // We need to verify the token first
-      accessToken,
+      tokenUser.user.id,
       { password: newPassword }
     );
 

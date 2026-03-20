@@ -3,8 +3,31 @@ import { AppError, NotFoundError } from '../middleware/errorHandler';
 import { InviteStaffDto, UpdateStaffDto } from '../types/api.types';
 import { UserRole } from '../types/enums';
 import { generateToken, generateRefreshToken } from '../middleware/auth';
+import jwt from 'jsonwebtoken';
+import { env } from '../config/env';
+import { emailService } from './email.service';
 
 export class StaffService {
+  private createInviteToken(staffRecordId: string): string {
+    return jwt.sign(
+      { type: 'staff_invite', staffRecordId },
+      env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+  }
+
+  private parseInviteToken(token: string): string {
+    try {
+      const decoded = jwt.verify(token, env.JWT_SECRET) as any;
+      if (decoded?.type !== 'staff_invite' || !decoded?.staffRecordId) {
+        throw new AppError('Invalid invitation token', 400);
+      }
+      return decoded.staffRecordId as string;
+    } catch {
+      throw new AppError('Invitation token is invalid or expired', 400);
+    }
+  }
+
   /**
    * List all staff for a restaurant.
    */
@@ -70,15 +93,35 @@ export class StaffService {
 
     if (error) throw new AppError('Failed to invite staff member', 500);
 
-    // TODO: Send invitation email when email provider is configured
+    const { data: org } = await supabaseAdmin
+      .from('organizations')
+      .select('name')
+      .eq('id', restaurantId)
+      .single();
 
-    return this.formatStaff(data);
+    const inviteToken = this.createInviteToken(data.id);
+    const baseUrl = env.CORS_ORIGINS.split(',')[0];
+    const inviteUrl = `${baseUrl}/accept-invite?token=${inviteToken}`;
+
+    emailService.sendStaffInvite({
+      to: dto.email,
+      staffName: dto.name,
+      restaurantName: org?.name || 'Your Restaurant',
+      inviteToken,
+      baseUrl,
+    }).catch(() => {});
+
+    return {
+      ...this.formatStaff(data),
+      inviteUrl,
+    };
   }
 
   /**
    * Accept a staff invitation — creates auth user and links to staff record.
    */
-  async acceptInvite(staffRecordId: string, password: string, name: string) {
+  async acceptInvite(inviteToken: string, password: string, name: string) {
+    const staffRecordId = this.parseInviteToken(inviteToken);
     // 1. Get pending staff record
     const { data: staffRecord, error: staffErr } = await supabaseAdmin
       .from('staff_members')

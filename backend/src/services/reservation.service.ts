@@ -227,12 +227,82 @@ export class ReservationService {
    * Update a reservation.
    */
   async update(reservationId: string, restaurantId: string, dto: UpdateReservationDto) {
+    const { data: current, error: currentErr } = await supabaseAdmin
+      .from('reservations')
+      .select('id, table_id, reservation_date, start_time, end_time, party_size')
+      .eq('id', reservationId)
+      .eq('restaurant_id', restaurantId)
+      .single();
+
+    if (currentErr || !current) throw new NotFoundError('Reservation');
+
+    const { data: org } = await supabaseAdmin
+      .from('organizations')
+      .select('default_reservation_duration_min, max_party_size, opening_time, closing_time, max_advance_booking_days')
+      .eq('id', restaurantId)
+      .single();
+
+    if (!org) throw new AppError('Restaurant not found', 404);
+
+    const effectiveTableId = dto.tableId !== undefined ? dto.tableId : current.table_id;
+    const effectiveDate = dto.reservationDate !== undefined ? dto.reservationDate : current.reservation_date;
+    const effectiveStart = dto.startTime !== undefined ? dto.startTime : current.start_time;
+    const effectivePartySize = dto.partySize !== undefined ? dto.partySize : current.party_size;
+    const effectiveEnd =
+      dto.endTime !== undefined
+        ? dto.endTime
+        : dto.startTime !== undefined
+        ? addMinutesToTime(effectiveStart, org.default_reservation_duration_min || 90)
+        : current.end_time;
+
+    // Keep update path validation equivalent to create path.
+    if (effectivePartySize > (org.max_party_size || 20)) {
+      throw new AppError(`Party size cannot exceed ${org.max_party_size || 20}`, 400);
+    }
+
+    const today = getTodayDate();
+    if (effectiveDate < today) {
+      throw new AppError('Cannot book reservations in the past', 400);
+    }
+
+    const maxDate = new Date();
+    maxDate.setDate(maxDate.getDate() + (org.max_advance_booking_days || 30));
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+    if (effectiveDate > maxDateStr) {
+      throw new AppError(`Can only book up to ${org.max_advance_booking_days || 30} days in advance`, 400);
+    }
+
+    if (timeToMinutes(effectiveStart) < timeToMinutes(org.opening_time)) {
+      throw new AppError(`Restaurant does not open until ${org.opening_time}`, 400);
+    }
+    if (timeToMinutes(effectiveEnd) > timeToMinutes(org.closing_time)) {
+      throw new AppError(`Restaurant closes at ${org.closing_time}. Please choose an earlier time.`, 400);
+    }
+
+    if (effectiveTableId) {
+      const { data: conflicts, error: conflictErr } = await supabaseAdmin
+        .from('reservations')
+        .select('id, start_time, end_time')
+        .eq('table_id', effectiveTableId)
+        .eq('reservation_date', effectiveDate)
+        .neq('id', reservationId)
+        .not('status', 'in', `(${ReservationStatus.CANCELLED},${ReservationStatus.NO_SHOW})`);
+
+      if (conflictErr) throw new AppError('Failed to validate table availability', 500);
+
+      for (const conflict of conflicts || []) {
+        if (timeRangesOverlap(effectiveStart, effectiveEnd, conflict.start_time, conflict.end_time)) {
+          throw new AppError('Table is no longer available for this time slot', 409);
+        }
+      }
+    }
+
     const updateData: Record<string, any> = { updated_at: new Date().toISOString() };
 
     if (dto.tableId !== undefined) updateData.table_id = dto.tableId;
     if (dto.reservationDate !== undefined) updateData.reservation_date = dto.reservationDate;
     if (dto.startTime !== undefined) updateData.start_time = dto.startTime;
-    if (dto.endTime !== undefined) updateData.end_time = dto.endTime;
+    if (dto.endTime !== undefined || dto.startTime !== undefined) updateData.end_time = effectiveEnd;
     if (dto.partySize !== undefined) updateData.party_size = dto.partySize;
     if (dto.guestFirstName !== undefined) updateData.guest_first_name = dto.guestFirstName;
     if (dto.guestLastName !== undefined) updateData.guest_last_name = dto.guestLastName;
@@ -321,6 +391,24 @@ export class ReservationService {
         p_customer_id: data.customer_id,
         p_restaurant_id: restaurantId,
       });
+    }
+
+    if (newStatus === ReservationStatus.CANCELLED && data.guest_email) {
+      const { data: org } = await supabaseAdmin
+        .from('organizations')
+        .select('name')
+        .eq('id', restaurantId)
+        .single();
+
+      if (org?.name) {
+        emailService.sendReservationCancellation({
+          to: data.guest_email,
+          guestName: data.guest_first_name || 'Guest',
+          restaurantName: org.name,
+          date: data.reservation_date,
+          time: data.start_time,
+        }).catch(() => {});
+      }
     }
 
     return this.formatReservation(data);

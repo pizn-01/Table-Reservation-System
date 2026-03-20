@@ -10,12 +10,14 @@ interface ReservationTabProps {
 
 interface Reservation {
   id: string
-  guest_first_name: string
-  guest_last_name?: string
-  table_number?: string
-  table_name?: string
-  start_time: string
-  party_size: number
+  guestFirstName: string
+  guestLastName?: string
+  table?: {
+    tableNumber?: string
+    name?: string
+  } | null
+  startTime: string
+  partySize: number
   status: string
 }
 
@@ -70,7 +72,7 @@ export default function ReservationTab({ theme, orgId }: ReservationTabProps) {
   }
 
   const formatTime = (t: string) => t?.slice(0, 5) || t
-  const guestName = (r: Reservation) => [r.guest_first_name, r.guest_last_name].filter(Boolean).join(' ') || 'Guest'
+  const guestName = (r: Reservation) => [r.guestFirstName, r.guestLastName].filter(Boolean).join(' ') || 'Guest'
 
   if (isLoading) {
     return (
@@ -118,9 +120,9 @@ export default function ReservationTab({ theme, orgId }: ReservationTabProps) {
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <td style={{ padding: '16px', fontWeight: 600, color: isDark ? '#ffffff' : '#1f2937' }}>{guestName(res)}</td>
-                  <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>{res.table_name || res.table_number || '—'}</td>
-                  <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>{formatTime(res.start_time)}</td>
-                  <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>{res.party_size}</td>
+                  <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>{res.table?.name || res.table?.tableNumber || '—'}</td>
+                  <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>{formatTime(res.startTime)}</td>
+                  <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>{res.partySize}</td>
                   <td style={{ padding: '16px' }}><StatusBadge status={res.status as any} /></td>
                   <td style={{ padding: '16px' }}>
                     <select
@@ -132,7 +134,7 @@ export default function ReservationTab({ theme, orgId }: ReservationTabProps) {
                         color: isDark ? '#e6edf3' : '#374151',
                       }}
                     >
-                      {['confirmed', 'arrived', 'seated', 'completed', 'no_show', 'cancelled'].map(s => (
+                      {['confirmed', 'arriving', 'seated', 'completed', 'no_show', 'cancelled'].map(s => (
                         <option key={s} value={s}>{s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
                       ))}
                     </select>

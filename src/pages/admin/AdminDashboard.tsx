@@ -39,8 +39,17 @@ export default function AdminDashboard() {
     const fetchStats = async () => {
       setStatsLoading(true)
       try {
-        const res = await api.get<DashboardStats>(`/organizations/${orgId}/dashboard/stats`)
-        if (res.data) setStats(res.data)
+        const res = await api.get<any>(`/organizations/${orgId}/dashboard/stats`)
+        if (res.data) {
+          const seatedNow = res.data?.today?.statusBreakdown?.seated || 0
+          const totalTables = res.data?.totals?.activeTables || 0
+          setStats(prev => ({
+            ...prev,
+            todaysBookings: res.data?.today?.reservations || 0,
+            seatedNow,
+            totalTables,
+          }))
+        }
       } catch {
         // Silently fall back to zeros — stats are non-critical
       } finally {

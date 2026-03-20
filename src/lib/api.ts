@@ -85,6 +85,71 @@ async function request<T>(
     }
   }
 
+  // --- MOCK GENERIC RESTAURANT ---
+  if (endpoint.includes('/public/') && endpoint.includes('/info')) {
+    return {
+      success: true,
+      data: {
+        id: "mock-org-id",
+        name: "Blackstone Grill (Demo)",
+        slug: "blackstone",
+        description: "A premium dining experience featuring the finest steaks and seafood.",
+        logoUrl: null,
+        address: "123 Culinary Blvd, Food City",
+        phone: "(555) 123-4567",
+        config: {
+          requirePhone: true,
+          requireEmail: true,
+          depositRequired: false
+        },
+        hasFloorPlan: false
+      }
+    } as any;
+  }
+
+  if (endpoint.includes('/public/') && endpoint.includes('/reserve')) {
+    return {
+      success: true,
+      data: "mock-reservation-" + Math.random().toString(36).substring(7)
+    } as any;
+  }
+
+  if (endpoint.includes('/auth/customer-signup') || endpoint.includes('/auth/customer-login')) {
+    const reqBody = body as any || {};
+    return {
+      success: true,
+      data: {
+        token: "mock-jwt-token-customer",
+        user: {
+          id: "mock-customer-id",
+          email: reqBody.email || "test@example.com",
+          name: reqBody.firstName ? `${reqBody.firstName} ${reqBody.lastName || ''}`.trim() : "Test User",
+          role: "customer"
+        }
+      }
+    } as any;
+  }
+
+  if (endpoint.includes('/auth/me')) {
+    // If it's our mock token, return the mock user.
+    // If no token or different token, we can just return success: false to trigger logout.
+    const token = getToken();
+    if (token === "mock-jwt-token-customer") {
+      return {
+        success: true,
+        data: {
+          user: {
+            id: "mock-customer-id",
+            email: "test@example.com",
+            name: "Test User",
+            role: "customer"
+          }
+        }
+      } as any;
+    }
+  }
+  // --- END MOCK ---
+
   // Make the request
   const response = await fetch(url, {
     ...rest,

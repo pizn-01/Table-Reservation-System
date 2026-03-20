@@ -30,6 +30,19 @@ interface CalendarBooking {
   status: string
 }
 
+const toCalendarBooking = (b: any): CalendarBooking => ({
+  id: b.id,
+  tableId: String(b.table_id || b.tableId || b.table?.id || ''),
+  guestName: [b.guest_first_name, b.guest_last_name, b.guestFirstName, b.guestLastName]
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(' ') || b.guestName || 'Guest',
+  partySize: b.party_size || b.partySize || 0,
+  startTime: (b.start_time || b.startTime || '').slice(0, 5),
+  endTime: (b.end_time || b.endTime || '').slice(0, 5),
+  status: b.status || 'confirmed',
+})
+
 // ─── Helpers ────────────────────────────────────────────
 
 const dateToYMD = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -113,28 +126,21 @@ export default function StaffTableManagement() {
         try {
           const calRes = await api.get<any>(`/organizations/${orgId}/reservations/calendar?date=${selectedDate}`)
           if (Array.isArray(calRes.data)) {
-            calendarData = calRes.data.map((b: any) => ({
-              id: b.id,
-              tableId: String(b.table_id || b.tableId || ''),
-              guestName: [b.guest_first_name, b.guest_last_name].filter(Boolean).join(' ') || b.guestName || 'Guest',
-              partySize: b.party_size || b.partySize || 0,
-              startTime: (b.start_time || b.startTime || '').slice(0, 5),
-              endTime: (b.end_time || b.endTime || '').slice(0, 5),
-              status: b.status || 'confirmed',
-            }))
+            calendarData = calRes.data.map(toCalendarBooking)
+          } else if (calRes.data?.sections) {
+            calendarData = calRes.data.sections
+              .flatMap((section: any) => section.tables || [])
+              .flatMap((table: any) => (table.reservations || []).map((r: any) => ({
+                ...r,
+                tableId: table.id,
+              })))
+              .map(toCalendarBooking)
           }
         } catch {
           // calendar endpoint might not exist; fall back to list
-          const listRes = await api.get<any[]>(`/organizations/${orgId}/reservations?date=${selectedDate}`)
-          calendarData = (listRes.data || []).map((b: any) => ({
-            id: b.id,
-            tableId: String(b.table_id || b.tableId || ''),
-            guestName: [b.guest_first_name, b.guest_last_name].filter(Boolean).join(' ') || 'Guest',
-            partySize: b.party_size || b.partySize || 0,
-            startTime: (b.start_time || b.startTime || '').slice(0, 5),
-            endTime: (b.end_time || b.endTime || '').slice(0, 5),
-            status: b.status || 'confirmed',
-          }))
+          const listRes = await api.get<any>(`/organizations/${orgId}/reservations?date=${selectedDate}`)
+          const list = listRes.data || listRes.reservations || []
+          calendarData = list.map(toCalendarBooking)
         }
         setBookings(calendarData)
       } catch (err) {
