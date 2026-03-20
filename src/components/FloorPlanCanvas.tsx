@@ -28,6 +28,10 @@ export interface FloorPlanCanvasProps {
   viewMode: 'standard' | 'merged' | 'split'
   getTableStatus: (table: FloorTable) => string
   onTableClick?: (table: FloorTable) => void
+  onPositionsChange?: (positions: Record<string, { x: number; y: number }>) => void
+  onSaveStart?: () => void
+  onSaveEnd?: (result?: { updated: number } | null) => void
+  onSaveError?: (err: any) => void
 }
 
 // ─── Constants ──────────────────────────────────────────
@@ -303,6 +307,7 @@ export default function FloorPlanCanvas({
       posMap[t.id] = { x: t.positionX ?? 0, y: t.positionY ?? 0 }
     })
     setPositions(posMap)
+    if (typeof onPositionsChange === 'function') onPositionsChange(posMap)
   }, [tables])
 
   // Debounced save to backend
@@ -315,9 +320,12 @@ export default function FloorPlanCanvas({
         positionY: Math.round(pos.y),
       }))
       try {
-        await api.patch(`/organizations/${orgId}/tables/positions`, { positions: posArray })
+        if (typeof onSaveStart === 'function') onSaveStart()
+        const res = await api.patch(`/organizations/${orgId}/tables/positions`, { positions: posArray })
+        if (typeof onSaveEnd === 'function') onSaveEnd(res.data || null)
       } catch (err) {
         console.error('Failed to save table positions:', err)
+        if (typeof onSaveError === 'function') onSaveError(err)
       }
     }, 800)
   }, [orgId])
@@ -367,12 +375,22 @@ export default function FloorPlanCanvas({
       ...prev,
       [draggingId]: { x: newX, y: newY },
     }))
+    // Notify parent of live position changes for optimistic updates
+    // (capture latest positions synchronously by reading svgRef current state)
+    try {
+      if (typeof onPositionsChange === 'function') {
+        // Construct updated map
+        const updated = { ...positions, [draggingId]: { x: newX, y: newY } }
+        onPositionsChange(updated)
+      }
+    } catch {}
   }, [draggingId, dragOffset])
 
   const handlePointerUp = useCallback(() => {
     if (draggingId) {
       setDraggingId(null)
       savePositions(positions)
+      if (typeof onPositionsChange === 'function') onPositionsChange(positions)
     }
   }, [draggingId, positions, savePositions])
 

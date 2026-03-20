@@ -199,6 +199,9 @@ psql postgres://$POSTGRES_URL/reservation_system -c "\dt"
 # └── audit_logs
 ```
 
+**Note (Floorplan snapshots):** A new migration `003_floorplan_versions.sql` was added to support storing JSON snapshots of floorplans. Apply migrations before schema-dependent deploys.
+
+
 ---
 
 ## Smoke Tests (20 minutes)

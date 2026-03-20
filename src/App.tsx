@@ -10,6 +10,7 @@ import CustomerDashboard from './pages/CustomerDashboard'
 import ReservationWizard from './pages/reservation/ReservationWizard'
 import BookingConfirmed from './pages/reservation/BookingConfirmed'
 import AdminDashboard from './pages/admin/AdminDashboard'
+import FloorPlanEditor from './pages/admin/FloorPlanEditor'
 import SetupWizard from './pages/setup/SetupWizard'
 import StaffLogin from './pages/StaffLogin'
 import StaffTableManagement from './pages/staff/StaffTableManagement'
@@ -53,6 +54,7 @@ function App() {
 
       {/* ─── Admin/Staff Routes (Role-Protected) ───── */}
       <Route path="/admin" element={<ProtectedRoute requiredRoles={['admin', 'manager']}><AdminDashboard /></ProtectedRoute>} />
+      <Route path="/admin/floorplan" element={<ProtectedRoute requiredRoles={['admin', 'manager']}><FloorPlanEditor /></ProtectedRoute>} />
       <Route path="/staff/tables" element={<ProtectedRoute requiredRoles={['admin', 'manager', 'host']}><StaffTableManagement /></ProtectedRoute>} />
     </Routes>
   )
