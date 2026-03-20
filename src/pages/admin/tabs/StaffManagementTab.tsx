@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, MoreVertical, Loader2, Trash2 } from 'lucide-react'
+import { Search, MoreVertical, Loader2, Trash2, ArrowRight } from 'lucide-react'
 import StatusBadge from '../../../components/StatusBadge'
 import api, { ApiError } from '../../../lib/api'
 import InviteStaffModal from './InviteStaffModal'
@@ -84,29 +84,34 @@ export default function StaffManagementTab({ theme, orgId }: StaffManagementTabP
   return (
     <div>
       {/* Top Control Bar */}
-      <div className="res-admin-tab-header res-staff-controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', gap: '16px' }}>
-        <div style={{ position: 'relative', width: '400px', maxWidth: '100%' }}>
-          <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: isDark ? '#8b949e' : '#6b7280' }} />
+      <div className="res-admin-tab-header res-staff-controls" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', gap: '20px' }}>
+        <div style={{ position: 'relative', width: '450px', maxWidth: '100%' }}>
+          <Search size={20} strokeWidth={2.5} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: isDark ? 'var(--color-dark-text-muted)' : '#6b7280' }} />
           <input
             type="text"
-            placeholder="Search name or email"
+            placeholder="Search name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="input-dark"
             style={{
-              width: '100%', padding: '10px 16px 10px 40px',
-              backgroundColor: isDark ? '#161B22' : '#ffffff', border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
-              borderRadius: '8px', color: isDark ? '#ffffff' : '#1f2937', fontSize: '0.875rem'
+              width: '100%', padding: '14px 16px 14px 52px',
+              backgroundColor: isDark ? '#161B22' : '#ffffff', 
+              border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
+              borderRadius: '14px', color: isDark ? '#ffffff' : '#1f2937', fontSize: '0.9375rem',
+              height: '56px'
             }}
           />
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <select
             value={roleFilter}
             onChange={(e) => setRoleFilter(e.target.value)}
+            className="input-dark"
             style={{
-              padding: '10px 16px', backgroundColor: isDark ? '#161B22' : '#ffffff',
-              border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`, borderRadius: '8px',
-              color: isDark ? '#ffffff' : '#1f2937', fontSize: '0.875rem', cursor: 'pointer', minWidth: '150px'
+              padding: '0 16px', backgroundColor: isDark ? '#161B22' : '#ffffff',
+              border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`, borderRadius: '14px',
+              color: isDark ? '#ffffff' : '#1f2937', fontSize: '0.9375rem', cursor: 'pointer', 
+              minWidth: '160px', height: '56px'
             }}
           >
             <option value="all">All Roles</option>
@@ -119,17 +124,20 @@ export default function StaffManagementTab({ theme, orgId }: StaffManagementTabP
             onClick={() => setIsInviteModalOpen(true)}
             className="btn-gold"
             style={{
-              padding: '12px 24px',
-              borderRadius: '12px',
-              fontSize: '0.9rem',
-              fontWeight: 700,
+              height: '56px',
+              padding: '0 28px',
+              borderRadius: '14px',
+              fontSize: '0.9375rem',
+              fontWeight: 800,
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              boxShadow: '0 10px 20px -5px rgba(212, 168, 86, 0.2)'
+              gap: '12px',
+              boxShadow: '0 12px 24px -8px rgba(212, 168, 86, 0.4)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em'
             }}
           >
-            Invite Staff
+            Invite Staff <ArrowRight size={18} strokeWidth={2.5} />
           </button>
         </div>
       </div>

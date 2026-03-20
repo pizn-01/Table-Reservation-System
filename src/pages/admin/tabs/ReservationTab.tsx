@@ -120,12 +120,15 @@ export default function ReservationTab({ theme, orgId }: ReservationTabProps) {
   }
 
   const inputStyle: React.CSSProperties = {
-    padding: '8px 12px',
-    fontSize: '0.8125rem',
-    borderRadius: '8px',
+    padding: '0 16px',
+    fontSize: '0.9375rem',
+    borderRadius: '14px',
     border: `1px solid ${isDark ? '#30363d' : '#d1d5db'}`,
     backgroundColor: isDark ? '#161B22' : '#ffffff',
     color: isDark ? '#e6edf3' : '#1f2937',
+    height: '52px',
+    outline: 'none',
+    transition: 'all 0.2s',
   }
 
   return (
@@ -154,14 +157,14 @@ export default function ReservationTab({ theme, orgId }: ReservationTabProps) {
             <option key={s} value={s}>{s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
           ))}
         </select>
-        <div style={{ position: 'relative', flex: 1, minWidth: '180px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: isDark ? '#8b949e' : '#9ca3af' }} />
+        <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
+          <Search size={18} strokeWidth={2.5} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: isDark ? 'var(--color-dark-text-muted)' : '#9ca3af' }} />
           <input
             type="text"
             placeholder="Search guest name or email…"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ ...inputStyle, width: '100%', paddingLeft: '32px' }}
+            style={{ ...inputStyle, width: '100%', paddingLeft: '44px' }}
           />
         </div>
         <button
@@ -177,15 +180,16 @@ export default function ReservationTab({ theme, orgId }: ReservationTabProps) {
       </div>
 
       {/* Header */}
-      <div className="res-admin-tab-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: isDark ? '#ffffff' : '#1f2937' }}>
+      <div className="res-admin-tab-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px' }}>
+        <h3 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: isDark ? '#ffffff' : '#1f2937', letterSpacing: '-0.02em' }}>
           Reservations {dateFilter ? `— ${dateFilter}` : ''}
         </h3>
-        <button onClick={handleExportCsv} style={{
-          display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.875rem', fontWeight: 600,
-          padding: '8px 16px', backgroundColor: '#C99C63', color: '#101A1C', border: 'none', borderRadius: '6px', cursor: 'pointer'
+        <button onClick={handleExportCsv} className="btn-gold" style={{
+          display: 'flex', alignItems: 'center', gap: '10px', fontSize: '0.875rem', fontWeight: 800,
+          padding: '0 20px', height: '48px', backgroundColor: '#C99C63', color: '#101A1C', border: 'none', borderRadius: '12px', 
+          cursor: 'pointer', boxShadow: '0 8px 16px -4px rgba(201, 156, 99, 0.3)', textTransform: 'uppercase', letterSpacing: '0.05em'
         }}>
-          <Download size={16} /> Export CSV
+          <Download size={18} strokeWidth={2.5} /> Export CSV
         </button>
       </div>
 

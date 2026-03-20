@@ -123,48 +123,45 @@ export default function AddEditTableModal({
       {/* Modal Container */}
       <div className="relative w-full max-w-xl animate-scale-in">
         <div
-          className="glass-card shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] overflow-hidden border-[#30363d]/50 bg-[#161B22]/95"
+          className="glass-card shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] overflow-hidden border-[#30363d]/50 bg-[#161B22]/98"
           style={{ borderRadius: '28px' }}
         >
 
-          {/* Header */}
-          <div className="relative px-12 pt-12 pb-10 border-b border-[#30363d]/30 overflow-hidden">
+          {/* Header - Unified with card */}
+          <div className="relative px-12 pt-16 pb-6 text-center overflow-hidden">
             <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 rounded-full blur-3xl opacity-60" style={{ backgroundColor: 'rgba(212,168,86,0.15)' }} />
             <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full blur-3xl opacity-40" style={{ backgroundColor: 'rgba(74,124,89,0.1)' }} />
 
-            <div className="relative flex items-center justify-between">
-              <div>
-                <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] leading-none" style={{ backgroundColor: 'rgba(212,168,86,0.08)', border: '1px solid rgba(212,168,86,0.12)', color: 'var(--color-gold)' }}>
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full" style={{ backgroundColor: 'rgba(212,168,86,0.75)' }}></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: 'var(--color-gold)' }}></span>
-                  </span>
-                  Table Setup
-                </div>
-                <h2 className="text-4xl font-bold text-white tracking-tight">
-                  {isEditMode ? 'Edit Table' : 'Add Table'}
-                </h2>
-                <p style={{ color: 'var(--color-dark-text-secondary)' }} className="text-base mt-2">
-                  {isEditMode ? 'Update this table\'s configuration.' : 'Configure a new table for your restaurant.'}
-                </p>
-              </div>
-              <button
-                onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 hover:text-white transition-all duration-300 cursor-pointer border border-white/10"
-                style={{ color: 'var(--color-dark-text-secondary)' }}
-              >
-                <X size={20} />
-              </button>
+            <button
+              onClick={onClose}
+              className="absolute right-8 top-8 w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 hover:text-white transition-all duration-300 cursor-pointer border border-white/10 z-20"
+              style={{ color: 'var(--color-dark-text-secondary)' }}
+            >
+              <X size={20} />
+            </button>
+
+            <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] leading-none mx-auto" style={{ backgroundColor: 'rgba(212,168,86,0.08)', border: '1px solid rgba(212,168,86,0.12)', color: 'var(--color-gold)' }}>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full" style={{ backgroundColor: 'rgba(212,168,86,0.75)' }}></span>
+                <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: 'var(--color-gold)' }}></span>
+              </span>
+              Table Configuration
             </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
+              {isEditMode ? 'Edit Table' : 'Add Table'}
+            </h2>
+            <p style={{ color: 'var(--color-dark-text-secondary)' }} className="text-lg max-w-md mx-auto mt-4">
+              {isEditMode ? 'Update this table\'s configuration.' : 'Configure a new table for your restaurant.'}
+            </p>
           </div>
 
-          <div className="p-12">
+          <div className="px-12 pb-12 pt-4">
             {error && (
-              <div className="mb-8 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-sm text-red-400 flex items-start gap-4 animate-shake">
-                <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center shrink-0">
-                  <AlertCircle size={20} className="text-red-500" strokeWidth={2.5} />
+              <div className="mb-10 rounded-2xl border border-red-500/20 bg-red-500/10 p-5 text-sm text-red-400 flex items-start gap-4 animate-shake">
+                <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center shrink-0">
+                  <AlertCircle size={24} className="text-red-500" strokeWidth={2.5} />
                 </div>
-                <div className="flex-1 pt-0.5">
+                <div className="flex-1 pt-1.5">
                   <p className="font-semibold text-red-400 mb-1 leading-none uppercase tracking-wider text-[11px]">Error</p>
                   <p className="opacity-80 mt-1">{error}</p>
                 </div>
@@ -176,7 +173,7 @@ export default function AddEditTableModal({
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Table Number</label>
                 <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ zIndex: 10, color: 'var(--color-dark-text-muted)' }}>
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ color: 'var(--color-dark-text-muted)' }}>
                     <Hash size={22} strokeWidth={2.5} />
                   </div>
                   <input
@@ -195,7 +192,7 @@ export default function AddEditTableModal({
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Capacity</label>
                 <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ zIndex: 10, color: 'var(--color-dark-text-muted)' }}>
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ color: 'var(--color-dark-text-muted)' }}>
                     <Users size={22} strokeWidth={2.5} />
                   </div>
                   <input
@@ -216,7 +213,7 @@ export default function AddEditTableModal({
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Area (Optional)</label>
                 <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ zIndex: 10, color: 'var(--color-dark-text-muted)' }}>
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ color: 'var(--color-dark-text-muted)' }}>
                     <MapPin size={22} strokeWidth={2.5} />
                   </div>
                   <select
@@ -238,7 +235,7 @@ export default function AddEditTableModal({
                 <div className="space-y-4">
                   <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Shape</label>
                   <div className="relative group">
-                    <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ zIndex: 10, color: 'var(--color-dark-text-muted)' }}>
+                    <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ color: 'var(--color-dark-text-muted)' }}>
                       <Shapes size={20} strokeWidth={2.5} />
                     </div>
                     <select
@@ -257,7 +254,7 @@ export default function AddEditTableModal({
                 <div className="space-y-4">
                   <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Type (Optional)</label>
                   <div className="relative group">
-                    <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ zIndex: 10, color: 'var(--color-dark-text-muted)' }}>
+                    <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ color: 'var(--color-dark-text-muted)' }}>
                       <LayoutGrid size={20} strokeWidth={2.5} />
                     </div>
                     <input
@@ -273,7 +270,7 @@ export default function AddEditTableModal({
               </div>
 
               {/* Actions */}
-              <div className="pt-8" style={{ display: 'flex', gap: '20px' }}>
+              <div className="pt-6" style={{ display: 'flex', gap: '20px' }}>
                 <button
                   type="button"
                   onClick={onClose}
@@ -285,7 +282,7 @@ export default function AddEditTableModal({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="btn-gold rounded-2xl shadow-[0_20px_40px_-12px_rgba(212,168,86,0.3)] active:scale-[0.97] hover:scale-[1.01] transition-all duration-300 text-white font-black uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50"
+                  className="btn-gold rounded-2xl shadow-[0_20px_40px_-12px_rgba(212,168,86,0.3)] active:scale-[0.98] hover:scale-[1.01] transition-all duration-300 text-white font-black uppercase tracking-widest flex items-center justify-center gap-4 disabled:opacity-50"
                   style={{ flex: 1.5, height: '64px', background: 'linear-gradient(135deg, #d4a856 0%, #b88d3e 100%)', color: '#0B1517' }}
                 >
                   {isSubmitting ? (
@@ -304,6 +301,7 @@ export default function AddEditTableModal({
           </div>
         </div>
       </div>
+
     </div>
   )
 }
