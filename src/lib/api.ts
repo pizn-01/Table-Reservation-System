@@ -3,11 +3,25 @@
  * Wraps fetch with auth headers, error normalization, and token refresh.
  */
 
-const defaultApiUrl = import.meta.env.PROD 
-  ? 'https://table-reservation-system.fly.dev/api/v1' 
-  : 'http://localhost:3001/api/v1';
+// Determine the API base URL safely. If a VITE env var is provided, use it
+// for development builds. For production builds we disallow localhost values
+// coming from environment files (they may be left over) and fall back to
+// the known production backend instead.
+const envApiBase = import.meta.env.VITE_API_BASE_URL as string | undefined;
+const defaultProdUrl = 'https://table-reservation-system.fly.dev/api/v1';
+const defaultDevUrl = 'http://localhost:3001/api/v1';
+const envContainsLocalhost = !!envApiBase && (envApiBase.includes('localhost') || envApiBase.includes('127.0.0.1'));
 
-export const BASE_URL = import.meta.env.VITE_API_BASE_URL || defaultApiUrl;
+export const BASE_URL = (() => {
+  if (envApiBase) {
+    if (import.meta.env.PROD) {
+      // Ignore unsafe localhost env values in production builds
+      return envContainsLocalhost ? defaultProdUrl : envApiBase;
+    }
+    return envApiBase;
+  }
+  return import.meta.env.PROD ? defaultProdUrl : defaultDevUrl;
+})();
 
 // ─── Types ──────────────────────────────────────────────
 
