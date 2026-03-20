@@ -191,13 +191,6 @@ export default function StaffLogin() {
           </button>
         </form>
       </div>
-
-      {/* Bottom Left Copyright (Matching previous pages) */}
-      <div className="res-auth-copy" style={{ position: 'absolute', bottom: '24px', left: '40px' }}>
-        <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>
-          Copyright @lemonvolt 2025 | Privacy Policy
-        </p>
-      </div>
     </div>
   )
 }

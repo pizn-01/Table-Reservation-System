@@ -197,13 +197,6 @@ export default function Login() {
           </Link>
         </p>
       </div>
-
-      {/* Bottom Left Copyright */}
-      <div className="res-auth-copy" style={{ position: 'absolute', bottom: '24px', left: '40px' }}>
-        <p style={{ color: '#2d333b', fontSize: '0.875rem', margin: 0 }}>
-          Copyright @lemonvolt 2025 | Privacy Policy
-        </p>
-      </div>
     </div>
   )
 }
