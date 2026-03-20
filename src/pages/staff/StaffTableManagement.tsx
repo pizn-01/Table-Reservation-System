@@ -139,7 +139,7 @@ export default function StaffTableManagement() {
         } catch {
           // calendar endpoint might not exist; fall back to list
           const listRes = await api.get<any>(`/organizations/${orgId}/reservations?date=${selectedDate}`)
-          const list = listRes.data || listRes.reservations || []
+          const list = listRes.data || (listRes as any).reservations || []
           calendarData = list.map(toCalendarBooking)
         }
         setBookings(calendarData)
