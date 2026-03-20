@@ -26,7 +26,7 @@ export class AuthService {
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: dto.email,
       password: dto.password,
-      email_confirm: true,
+      email_confirm: false,
       user_metadata: {
         name: dto.ownerName,
         role: UserRole.RESTAURANT_ADMIN,
@@ -231,7 +231,7 @@ export class AuthService {
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: dto.email,
       password: dto.password,
-      email_confirm: true,
+      email_confirm: false,
       user_metadata: {
         firstName: dto.firstName,
         lastName: dto.lastName,

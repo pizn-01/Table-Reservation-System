@@ -1,8 +1,5 @@
-/**
- * Pluggable email service with provider abstraction.
- * Now using Resend for real email delivery in testing mode.
- */
 import { Resend } from 'resend';
+import { supabaseAdmin } from '../config/database';
 
 export interface EmailPayload {
   to: string;
@@ -21,31 +18,33 @@ export interface EmailProvider {
 
 class ConsoleEmailProvider implements EmailProvider {
   async send(payload: EmailPayload) {
-    console.log('─── EMAIL BYPASS ───────────────────────');
+    console.log('─── EMAIL BYPASS / FALLBACK ───────────────────');
     console.log(`To:      ${payload.to}`);
     console.log(`Subject: ${payload.subject}`);
     console.log(`Body:    ${payload.text || payload.html.substring(0, 200)}...`);
-    console.log('────────────────────────────────────────');
+    console.log('──────────────────────────────────────────────');
     return { success: true, messageId: `bypass-${Date.now()}` };
   }
 }
 
 class ResendEmailProvider implements EmailProvider {
-  private resend: Resend;
+  private resend: Resend | null = null;
   
   constructor() {
-    this.resend = new Resend(process.env.RESEND_API_KEY || 're_aRiob8Mg_DUUjTAXDhM3baNRAP7kLYjj4');
+    const apiKey = process.env.RESEND_API_KEY;
+    if (apiKey) {
+      this.resend = new Resend(apiKey);
+    }
   }
 
   async send(payload: EmailPayload) {
+    if (!this.resend) {
+      return { success: false }; // Let the service decide on fallback
+    }
+
     try {
-      // In production with a custom domain, we would use a real 'from' address.
-      // In sandbox mode, Resend requires from: onboarding@resend.dev
       const isProd = process.env.NODE_ENV === 'production' && process.env.HAS_CUSTOM_DOMAIN === 'true';
       const fromEmail = isProd ? 'reservations@yourdomain.com' : 'Table Reserve <onboarding@resend.dev>';
-      
-      // In sandbox mode, we can only send to the exact email address used to sign up for Resend.
-      // We pull this from test_email env var or use a clear fallback string.
       const toEmail = isProd ? payload.to : (process.env.RESEND_TEST_EMAIL || payload.to);
 
       const response = await this.resend.emails.send({
@@ -75,30 +74,37 @@ class ResendEmailProvider implements EmailProvider {
 
 class EmailService {
   private provider: EmailProvider;
+  private consoleProvider: ConsoleEmailProvider;
 
   constructor() {
-    // Default to Resend provider
     this.provider = new ResendEmailProvider();
+    this.consoleProvider = new ConsoleEmailProvider();
   }
 
   /**
-   * Set a different email provider (e.g., Resend, SendGrid, Postmark).
+   * Set a different email provider.
    */
   setProvider(provider: EmailProvider) {
     this.provider = provider;
   }
 
   /**
-   * Send an email.
+   * Internal send method with console fallback for non-auth emails.
    */
-  async send(payload: EmailPayload) {
-    return this.provider.send(payload);
+  private async safeSend(payload: EmailPayload) {
+    const res = await this.provider.send(payload);
+    if (!res.success) {
+      console.warn(`[EmailService] Primary provider failed or not configured. Falling back to Console Log for: "${payload.subject}"`);
+      return this.consoleProvider.send(payload);
+    }
+    return res;
   }
 
   // ─── Template Helpers ──────────────────────────────────
 
   /**
    * Send a staff invitation email.
+   * Special case: If Resend is missing, we use Supabase's native inviteUserByEmail.
    */
   async sendStaffInvite(params: {
     to: string;
@@ -107,9 +113,9 @@ class EmailService {
     inviteToken: string;
     baseUrl: string;
   }) {
+    // Try primary provider first (Resend)
     const inviteUrl = `${params.baseUrl}/accept-invite?token=${params.inviteToken}`;
-
-    return this.send({
+    const payload: EmailPayload = {
       to: params.to,
       subject: `You're invited to join ${params.restaurantName}`,
       html: `
@@ -128,7 +134,27 @@ class EmailService {
         </div>
       `,
       text: `Hi ${params.staffName}, you've been invited to join ${params.restaurantName}. Accept your invitation here: ${inviteUrl}`,
-    });
+    };
+
+    const res = await this.provider.send(payload);
+    if (!res.success) {
+      console.log(`[EmailService] Resend unavailable. Falling back to Supabase Native Invitation for ${params.to}`);
+      // Supabase Native Invitation Fallback
+      const { error } = await supabaseAdmin.auth.admin.inviteUserByEmail(params.to, {
+        redirectTo: `${params.baseUrl}/accept-invite`,
+        data: {
+          name: params.staffName,
+          restaurant_name: params.restaurantName,
+        }
+      });
+
+      if (error) {
+        console.error('[EmailService] Supabase fallback invitation failed:', error.message);
+        return this.consoleProvider.send(payload);
+      }
+      return { success: true, messageId: 'supabase-invite' };
+    }
+    return res;
   }
 
   /**
@@ -143,7 +169,7 @@ class EmailService {
     partySize: number;
     confirmationId: string;
   }) {
-    return this.send({
+    return this.safeSend({
       to: params.to,
       subject: `Reservation Confirmed — ${params.restaurantName}`,
       html: `
@@ -165,6 +191,39 @@ class EmailService {
   }
 
   /**
+   * Send a reservation modification email.
+   */
+  async sendReservationModification(params: {
+    to: string;
+    guestName: string;
+    restaurantName: string;
+    date: string;
+    time: string;
+    partySize: number;
+    confirmationId: string;
+  }) {
+    return this.safeSend({
+      to: params.to,
+      subject: `Reservation Updated — ${params.restaurantName}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Your Reservation Has Been Updated</h2>
+          <p>Hi ${params.guestName},</p>
+          <p>Your reservation at <strong>${params.restaurantName}</strong> has been modified. Here are the updated details:</p>
+          <table style="width:100%;border-collapse:collapse;margin:16px 0;">
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Date</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">${params.date}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Time</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">${params.time}</td></tr>
+            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Party Size</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">${params.partySize} guests</td></tr>
+            <tr><td style="padding:8px;color:#666;">Confirmation #</td><td style="padding:8px;font-weight:bold;">${params.confirmationId}</td></tr>
+          </table>
+          <p style="color:#666;font-size:13px;">If you did not request this change, please contact the restaurant directly.</p>
+        </div>
+      `,
+      text: `Hi ${params.guestName}, your reservation at ${params.restaurantName} has been updated. New details: ${params.date} at ${params.time} for ${params.partySize} guests. Confirmation #${params.confirmationId}`,
+    });
+  }
+
+  /**
    * Send a reservation cancellation email.
    */
   async sendReservationCancellation(params: {
@@ -174,7 +233,7 @@ class EmailService {
     date: string;
     time: string;
   }) {
-    return this.send({
+    return this.safeSend({
       to: params.to,
       subject: `Reservation Cancelled — ${params.restaurantName}`,
       html: `
@@ -193,7 +252,8 @@ class EmailService {
    * Send a password reset email (backup — Supabase handles primary flow).
    */
   async sendPasswordReset(params: { to: string; resetUrl: string }) {
-    return this.send({
+    // Note: Supabase native reset is generally preferred.
+    return this.safeSend({
       to: params.to,
       subject: 'Reset Your Password — TableReserve',
       html: `
@@ -207,39 +267,6 @@ class EmailService {
         </div>
       `,
       text: `You requested a password reset. Visit this link to set a new password: ${params.resetUrl}`,
-    });
-  }
-
-  /**
-   * Send a reservation modification email.
-   */
-  async sendReservationModification(params: {
-    to: string;
-    guestName: string;
-    restaurantName: string;
-    date: string;
-    time: string;
-    partySize: number;
-    confirmationId: string;
-  }) {
-    return this.send({
-      to: params.to,
-      subject: `Reservation Updated — ${params.restaurantName}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2>Your Reservation Has Been Updated</h2>
-          <p>Hi ${params.guestName},</p>
-          <p>Your reservation at <strong>${params.restaurantName}</strong> has been modified. Here are the updated details:</p>
-          <table style="width:100%;border-collapse:collapse;margin:16px 0;">
-            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Date</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">${params.date}</td></tr>
-            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Time</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">${params.time}</td></tr>
-            <tr><td style="padding:8px;border-bottom:1px solid #eee;color:#666;">Party Size</td><td style="padding:8px;border-bottom:1px solid #eee;font-weight:bold;">${params.partySize} guests</td></tr>
-            <tr><td style="padding:8px;color:#666;">Confirmation #</td><td style="padding:8px;font-weight:bold;">${params.confirmationId}</td></tr>
-          </table>
-          <p style="color:#666;font-size:13px;">If you did not request this change, please contact the restaurant directly.</p>
-        </div>
-      `,
-      text: `Hi ${params.guestName}, your reservation at ${params.restaurantName} has been updated. New details: ${params.date} at ${params.time} for ${params.partySize} guests. Confirmation #${params.confirmationId}`,
     });
   }
 }
