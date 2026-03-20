@@ -145,19 +145,20 @@ export class StaffService {
     const userRole = roleMap[staffRecord.role] || UserRole.VIEWER;
 
     // 2. Handle Supabase Auth user (Create or Link existing)
-    let authUser;
+    let authUser: any = null;
+    let createdAuthUserId: string | null = null;
+
     const { data: existingUser } = await supabaseAdmin.auth.admin.getUserByEmail(staffRecord.email);
 
     if (existingUser?.user) {
       authUser = existingUser.user;
-      // Optionally update metadata if needed
       await supabaseAdmin.auth.admin.updateUserById(authUser.id, {
         user_metadata: {
           ...authUser.user_metadata,
           name,
           role: userRole,
         },
-      });
+      }).catch(() => {});
     } else {
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: staffRecord.email,
@@ -169,10 +170,11 @@ export class StaffService {
         },
       });
 
-      if (authError || !authData.user) {
+      if (authError || !authData?.user) {
         throw new AppError(authError?.message || 'Failed to create account', 500);
       }
       authUser = authData.user;
+      createdAuthUserId = authData.user.id;
     }
 
     // 3. Link auth user to staff record
@@ -186,24 +188,27 @@ export class StaffService {
       .eq('id', staffRecordId);
 
     if (updateErr) {
-      await supabaseAdmin.auth.admin.deleteUser(authData.user.id);
+      // If we created a new auth user in this flow, remove it to avoid orphaned accounts
+      if (createdAuthUserId) {
+        await supabaseAdmin.auth.admin.deleteUser(createdAuthUserId).catch(() => {});
+      }
       throw new AppError('Failed to accept invitation', 500);
     }
 
-    // 4. Generate JWT
+    // 4. Generate JWT using the linked/created auth user id
     const org = staffRecord.organizations;
     const token = generateToken({
-      sub: authData.user.id,
+      sub: authUser.id,
       email: staffRecord.email,
       role: userRole,
       restaurantId: org.id,
     });
 
-    const refreshToken = generateRefreshToken(authData.user.id);
+    const refreshToken = generateRefreshToken(authUser.id);
 
     return {
       user: {
-        id: authData.user.id,
+        id: authUser.id,
         email: staffRecord.email,
         role: userRole,
         name,

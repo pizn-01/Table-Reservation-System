@@ -71,24 +71,25 @@ export default function InviteStaffModal({
           
           {/* Header with Background Pattern/Gradient */}
           <div className="relative px-12 pt-12 pb-10 border-b border-[#30363d]/30 overflow-hidden">
-            <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 bg-gold/15 rounded-full blur-3xl opacity-60" />
-            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-green-primary/10 rounded-full blur-3xl opacity-40" />
+              <div className="absolute top-0 right-0 -mr-12 -mt-12 w-48 h-48 rounded-full blur-3xl opacity-60" style={{ backgroundColor: 'rgba(212,168,86,0.15)' }} />
+              <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 rounded-full blur-3xl opacity-40" style={{ backgroundColor: 'rgba(74,124,89,0.1)' }} />
             
             <div className="relative flex items-center justify-between">
               <div>
-                <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[0.2em] leading-none">
+                <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.2em] leading-none" style={{ backgroundColor: 'rgba(212,168,86,0.08)', border: '1px solid rgba(212,168,86,0.12)', color: 'var(--color-gold)' }}>
                   <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-gold"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full" style={{ backgroundColor: 'rgba(212,168,86,0.75)' }}></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: 'var(--color-gold)' }}></span>
                   </span>
                   Staff Invite
                 </div>
                 <h2 className="text-4xl font-bold text-white tracking-tight">Invite Team</h2>
-                <p className="text-dark-text-secondary text-base mt-2">Expand your restaurant's digital presence.</p>
+                <p style={{ color: 'var(--color-dark-text-secondary)' }} className="text-base mt-2">Expand your restaurant's digital presence.</p>
               </div>
               <button 
                 onClick={onClose} 
-                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-dark-text-secondary hover:text-white transition-all duration-300 cursor-pointer border border-white/10"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 hover:text-white transition-all duration-300 cursor-pointer border border-white/10"
+                style={{ color: 'var(--color-dark-text-secondary)' }}
               >
                 <X size={20} />
               </button>
@@ -112,7 +113,7 @@ export default function InviteStaffModal({
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Staff Name</label>
                 <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110" style={{ zIndex: 10 }}>
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ zIndex: 10, color: 'var(--color-dark-text-muted)' }}>
                     <User size={22} strokeWidth={2.5} />
                   </div>
                   <input
@@ -130,7 +131,7 @@ export default function InviteStaffModal({
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Email Address</label>
                 <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110" style={{ zIndex: 10 }}>
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ zIndex: 10, color: 'var(--color-dark-text-muted)' }}>
                     <Mail size={22} strokeWidth={2.5} />
                   </div>
                   <input
@@ -148,7 +149,7 @@ export default function InviteStaffModal({
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Access Level</label>
                 <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110" style={{ zIndex: 10 }}>
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ zIndex: 10, color: 'var(--color-dark-text-muted)' }}>
                     <Shield size={22} strokeWidth={2.5} />
                   </div>
                   <select

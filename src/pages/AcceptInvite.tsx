@@ -64,7 +64,7 @@ export default function AcceptInvite() {
             <CheckCircle2 size={40} className="text-green-500" />
           </div>
           <h2 className="text-3xl font-bold text-white mb-4">Welcome to the Team!</h2>
-          <p className="text-dark-text-secondary mb-8">
+          <p style={{ color: 'var(--color-dark-text-secondary)' }} className="mb-8">
             Your account has been created successfully. Redirecting you to the login page...
           </p>
           <Link to="/staff-login" className="btn-gold block w-full py-3 flex items-center justify-center gap-2">
@@ -78,20 +78,20 @@ export default function AcceptInvite() {
   return (
     <div className="min-h-screen bg-[#0B1517] flex items-center justify-center p-4 py-12 relative overflow-hidden">
       {/* Dynamic Background Blurs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-gold/5 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-green-primary/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-pulse" style={{ backgroundColor: 'rgba(212,168,86,0.05)' }} />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] animate-pulse" style={{ backgroundColor: 'rgba(74,124,89,0.05)', animationDelay: '2s' }} />
 
       <div className="relative z-10 w-full max-w-xl animate-fade-in px-4">
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full bg-gold/10 border border-gold/20 text-gold text-[10px] font-black uppercase tracking-[0.2em] leading-none">
+          <div className="inline-flex items-center gap-2 mb-6 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] leading-none" style={{ backgroundColor: 'rgba(212,168,86,0.08)', border: '1px solid rgba(212,168,86,0.12)', color: 'var(--color-gold)' }}>
             <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gold opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-gold"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full" style={{ backgroundColor: 'rgba(212,168,86,0.75)' }}></span>
+              <span className="relative inline-flex rounded-full h-2 w-2" style={{ backgroundColor: 'var(--color-gold)' }}></span>
             </span>
             Staff Invite
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight leading-tight">Setup Your Account</h1>
-          <p className="text-dark-text-secondary text-lg max-w-md mx-auto">Create your password to join the restaurant team and start managing reservations.</p>
+          <p style={{ color: 'var(--color-dark-text-secondary)' }} className="text-lg max-w-md mx-auto">Create your password to join the restaurant team and start managing reservations.</p>
         </div>
 
         <div className="glass-card shadow-[0_32px_64px_-16px_rgba(0,0,0,0.5)] p-12 border-[#30363d]/50 bg-[#161B22]/95" style={{ borderRadius: '28px' }}>
@@ -119,7 +119,7 @@ export default function AcceptInvite() {
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Your Full Name</label>
                 <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ color: 'var(--color-dark-text-muted)' }}>
                     <User size={22} strokeWidth={2.5} />
                   </div>
                   <input
@@ -137,7 +137,7 @@ export default function AcceptInvite() {
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Create Password</label>
                 <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ color: 'var(--color-dark-text-muted)' }}>
                     <Lock size={22} strokeWidth={2.5} />
                   </div>
                   <input
@@ -156,7 +156,7 @@ export default function AcceptInvite() {
               <div className="space-y-4">
                 <label className="text-[11px] font-black text-gold uppercase tracking-[0.2em] pl-1 opacity-90 block">Confirm Password</label>
                 <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-dark-text-muted transition-all duration-300 group-focus-within:text-gold group-focus-within:scale-110">
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 transition-all duration-300 group-focus-within:scale-110" style={{ color: 'var(--color-dark-text-muted)' }}>
                     <Lock size={22} strokeWidth={2.5} />
                   </div>
                   <input
@@ -194,8 +194,8 @@ export default function AcceptInvite() {
           )}
         </div>
         
-        <p className="mt-12 text-center text-dark-text-secondary">
-          Already have an account? <Link to="/staff-login" className="text-gold hover:text-white transition-all duration-300 font-bold border-b border-gold/20 hover:border-gold pb-1 ml-1">Sign in instead</Link>
+        <p className="mt-12 text-center" style={{ color: 'var(--color-dark-text-secondary)' }}>
+          Already have an account? <Link to="/staff-login" className="hover:text-white transition-all duration-300 font-bold pb-1 ml-1" style={{ color: 'var(--color-gold)', borderBottom: '1px solid rgba(212,168,86,0.12)' }}>Sign in instead</Link>
         </p>
       </div>
     </div>
