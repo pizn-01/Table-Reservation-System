@@ -1,9 +1,16 @@
 import { useState } from 'react'
-import { Calendar, Table, Settings, LogOut, CheckCircle2, Users, MapPin, Clock } from 'lucide-react'
+import { Calendar, Settings, LogOut, CheckCircle2, Users, MapPin, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 export default function Welcome() {
   const navigate = useNavigate()
+  const { user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   const reservations = [
     {
@@ -80,13 +87,15 @@ export default function Welcome() {
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Logo</h1>
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           <Settings size={20} style={{ cursor: 'pointer', color: '#8b949e' }} />
-          <LogOut size={20} style={{ cursor: 'pointer', color: '#8b949e' }} onClick={() => navigate('/logged-in-tab-res')} />
+          <LogOut size={20} style={{ cursor: 'pointer', color: '#8b949e' }} onClick={handleLogout} />
         </div>
       </div>
 
       {/* Greeting */}
       <div className="res-welcome-greeting" style={{ marginBottom: '40px' }}>
-        <h2 className="res-welcome-title" style={{ fontSize: '2.5rem', fontWeight: 700, margin: '0 0 8px 0' }}>Welcome back, John</h2>
+        <h2 className="res-welcome-title" style={{ fontSize: '2.5rem', fontWeight: 700, margin: '0 0 8px 0' }}>
+          Welcome back, {user?.name || 'User'}
+        </h2>
         <p style={{ fontSize: '1.125rem', color: '#8b949e', margin: 0 }}>Manage your reservations and book your next visit</p>
       </div>
 

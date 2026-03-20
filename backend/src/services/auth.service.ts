@@ -53,6 +53,15 @@ export class AuthService {
       .single();
 
     if (orgError || !org) {
+      // Log underlying Supabase error for debugging before cleanup
+      // This will appear in Fly logs.
+      // Keep thrown error generic to avoid leaking sensitive details to clients.
+      // Cleanup: delete created auth user
+      try {
+        console.error('Organization creation failed', orgError);
+      } catch (logErr) {
+        // ignore logging errors
+      }
       await supabaseAdmin.auth.admin.deleteUser(userId);
       throw new AppError('Failed to create organization', 500);
     }

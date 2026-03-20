@@ -1,18 +1,42 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { ApiError } from '../lib/api'
 
 export default function LoggedInTabRes() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [rememberMe, setRememberMe] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Mock successful login redirection
-    navigate('/welcome')
+    setError('')
+    setIsLoading(true)
+
+    try {
+      const result = await login(email, password)
+      if (result.user.role === 'customer') {
+        navigate('/customer-dashboard')
+      } else if (result.restaurant?.setupCompleted) {
+        navigate('/welcome')
+      } else {
+        navigate('/setup')
+      }
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message)
+      } else {
+        setError('Something went wrong. Please try again.')
+      }
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -63,6 +87,20 @@ export default function LoggedInTabRes() {
             Welcome back! Please enter your details.
           </p>
         </div>
+
+        {error && (
+          <div style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: '8px',
+            padding: '10px 16px',
+            marginBottom: '20px',
+            color: '#ef4444',
+            fontSize: '0.875rem',
+          }}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Email Field */}
