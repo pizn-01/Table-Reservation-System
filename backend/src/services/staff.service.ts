@@ -86,6 +86,7 @@ export class StaffService {
         name: dto.name,
         email: dto.email,
         role: dto.role,
+        is_active: true, // Explicitly set active on invitation
         invited_at: new Date().toISOString(),
       })
       .select()
@@ -148,8 +149,14 @@ export class StaffService {
     let authUser: any = null;
     let createdAuthUserId: string | null = null;
 
-    const { data: { users: matchedUsers } } = await supabaseAdmin.auth.admin.listUsers();
-    const existingAuthUser = matchedUsers?.find((u: any) => u.email === staffRecord.email);
+    // Direct lookup by email is more reliable than paginated list
+    const { data: { users: matchedUsers }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (listError) {
+      console.error(`[Staff] Failed to list users during invite accept:`, listError);
+    }
+
+    const existingAuthUser = matchedUsers?.find((u: any) => u.email?.toLowerCase() === staffRecord.email.toLowerCase());
 
     if (existingAuthUser) {
       authUser = existingAuthUser;
@@ -159,7 +166,7 @@ export class StaffService {
           name,
           role: userRole,
         },
-      }).catch(() => {});
+      }).catch((e) => console.error(`[Staff] Meta update failed for ${authUser.id}:`, e));
     } else {
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: staffRecord.email,
@@ -184,6 +191,7 @@ export class StaffService {
       .update({
         user_id: authUser.id,
         name,
+        is_active: true, // Explicitly ensure active
         accepted_at: new Date().toISOString(),
       })
       .eq('id', staffRecordId);

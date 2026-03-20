@@ -117,42 +117,59 @@ export class AuthService {
 
     const userId = authData.user.id;
 
-    const { data: staffMember, error: staffError } = await supabaseAdmin
-      .from('staff_members')
-      .select('*, organizations(*)')
+    // 1. Check if user is a Super Admin (highest priority)
+    const { data: superAdmin } = await supabaseAdmin
+      .from('super_admins')
+      .select('*')
       .eq('user_id', userId)
       .eq('is_active', true)
       .single();
 
-    if (staffError || !staffMember) {
-      const { data: superAdmin } = await supabaseAdmin
-        .from('super_admins')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .single();
+    if (superAdmin) {
+      const token = generateToken({
+        sub: userId,
+        email: dto.email,
+        role: UserRole.SUPER_ADMIN,
+      });
 
-      if (superAdmin) {
-        const token = generateToken({
-          sub: userId,
+      return {
+        user: {
+          id: userId,
           email: dto.email,
           role: UserRole.SUPER_ADMIN,
-        });
+          name: superAdmin.name,
+        },
+        token,
+      };
+    }
 
-        return {
-          user: {
-            id: userId,
-            email: dto.email,
-            role: UserRole.SUPER_ADMIN,
-            name: superAdmin.name,
-          },
-          token,
-        };
-      }
+    // 2. Check for Staff Member roles
+    // We use select() instead of single() to handle users with multiple roles across restaurants
+    const { data: staffMembers, error: staffError } = await supabaseAdmin
+      .from('staff_members')
+      .select('*, organizations(*)')
+      .eq('user_id', userId);
 
+    if (staffError) {
+      console.error(`[Auth] Staff lookup error for ${userId}:`, staffError);
+      throw new AppError('An error occurred during login. Please try again.', 500);
+    }
+
+    if (!staffMembers || staffMembers.length === 0) {
+      // If we found a Supabase user but no staff record, they might be a customer or a deleted staff member
+      console.warn(`[Auth] No staff records found for authenticated user ${userId} (${dto.email})`);
       throw new AppError('No active staff account found for this email', 401);
     }
 
+    // Filter for active accounts
+    const activeStaff = staffMembers.find(s => s.is_active === true);
+    
+    if (!activeStaff) {
+      console.warn(`[Auth] User ${userId} has staff records but none are active.`);
+      throw new AppError('Your account is currently inactive. Please contact your manager.', 401);
+    }
+
+    const staffMember = activeStaff;
     const roleMap: Record<string, UserRole> = {
       admin: UserRole.RESTAURANT_ADMIN,
       manager: UserRole.MANAGER,
