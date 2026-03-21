@@ -148,7 +148,7 @@ export class AuthService {
     const { data: staffMembers, error: staffError } = await supabaseAdmin
       .from('staff_members')
       .select('*, organizations(*)')
-      .eq('user_id', userId);
+      .or(`user_id.eq.${userId},email.ilike.${dto.email}`);
 
     if (staffError) {
       console.error(`[Auth] Staff lookup error for ${userId}:`, staffError);
@@ -170,6 +170,16 @@ export class AuthService {
     }
 
     const staffMember = activeStaff;
+
+    // Self-healing: If user_id is missing or doesn't match, update it
+    if (!staffMember.user_id || staffMember.user_id !== userId) {
+      console.info(`[Auth] Healing staff record for ${dto.email}: linking user_id ${userId}`);
+      await supabaseAdmin
+        .from('staff_members')
+        .update({ user_id: userId })
+        .eq('id', staffMember.id);
+    }
+
     const roleMap: Record<string, UserRole> = {
       admin: UserRole.RESTAURANT_ADMIN,
       manager: UserRole.MANAGER,

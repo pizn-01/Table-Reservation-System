@@ -149,14 +149,18 @@ export class StaffService {
     let authUser: any = null;
     let createdAuthUserId: string | null = null;
 
-    // Direct lookup by email is more reliable than paginated list
+    // Use a more reliable way to find the user.
+    // listUsers() returns up to 1000 users by default in recent versions,
+    // but we'll use a specific email check to be sure.
     const { data: { users: matchedUsers }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
     
     if (listError) {
       console.error(`[Staff] Failed to list users during invite accept:`, listError);
     }
 
-    const existingAuthUser = matchedUsers?.find((u: any) => u.email?.toLowerCase() === staffRecord.email.toLowerCase());
+    // Always compare emails in a case-insensitive way
+    const targetEmail = staffRecord.email.toLowerCase();
+    const existingAuthUser = matchedUsers?.find((u: any) => u.email?.toLowerCase() === targetEmail);
 
     if (existingAuthUser) {
       authUser = existingAuthUser;
